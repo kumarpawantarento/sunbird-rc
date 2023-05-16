@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "Student": {
+      "$ref": "#/definitions/Student"
+    }
+  },
+  "required": ["Student"],
+  "title": "Student",
+  "definitions": {
+    "Student": {
+      "$id": "#/properties/Student",
+      "type": "object",
+      "title": "Student schema",
+      "required": ["name", "courseKey", "email", "username", "StudentKey", "centerKey", "address", "rollNo", "dob"],
+      "uniqueIndexFields": ["username"],
+      "properties": {
+        "name": { "type": "string" },
+        "courseKey": { "type": "string" },
+        "email": { "type": "string" },
+        "username": { "type": "string" },
+        "StudentKey": { "type": "string" },
+        "centerKey": { "type": "string" },
+        "address": { "type": "string" },
+        "rollNo": { "type": "string" },
+        "dob": { "type": "string" }
+      }
+    }
+  },
+  "_osConfig": {
+    "ownershipAttributes": [
+      {
+        "email": "/username",
+        "mobile": "/username",
+        "userId": "/username"
+      }
+    ],
+    "inviteRoles": ["anonymous"],
+    "roles": ["anonymous"]
+  }
+}

@@ -1,0 +1,426 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Teacher",
+  "type": "object",
+  "properties": {
+    "Teacher": {
+      "$ref": "#/definitions/Teacher"
+    }
+  },
+  "required": [
+    "Teacher"
+  ],
+  "title": "Teacher",
+  "definitions": {
+    "IdentityDetails": {
+      "type": "object",
+      "title": "Identity Details",
+      "description": "Identity Details",
+      "required": [],
+      "properties": {
+        "fullName": {
+          "$id": "#/properties/fullName",
+          "type": "string",
+          "title": "Full name"
+        },
+        "gender": {
+          "$id": "#/properties/gender",
+          "type": "string",
+          "enum": [
+            "Male",
+            "Female",
+            "Other"
+          ],
+          "title": "Gender"
+        },
+        "dob": {
+          "$id": "#/properties/dob",
+          "type": "string",
+          "format": "date",
+          "title": "DOB"
+        },
+        "identityType": {
+          "$id": "#/properties/identityType",
+          "type": "string",
+          "$comment": "Nationality",
+          "title": "ID Type"
+        },
+        "identityValue": {
+          "$id": "#/properties/identityValue",
+          "type": "string",
+          "$comment": "Nationality",
+          "title": "ID Value"
+        }
+      }
+    },
+    "ContactDetails": {
+      "type": "object",
+      "title": "Contact Details",
+      "description": "Contact Details",
+      "required": [],
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "email": {
+          "$id": "#/properties/email",
+          "type": "string",
+          "title": "Email"
+        },
+        "mobile": {
+          "$id": "#/properties/mobile",
+          "type": "string",
+          "title": "Mobile"
+        },
+        "address": {
+          "$id": "#/properties/address",
+          "$ref": "#/definitions/Address",
+          "title": "Address"
+        }
+      }
+    },
+    "AcademicQualification": {
+      "type": "object",
+      "title": "Academic Qualification",
+      "description": "Academic Qualification",
+      "required": [],
+      "properties": {
+        "institute": {
+          "$id": "#/properties/institute",
+          "type": "string",
+          "title": "Institute Full Name"
+        },
+        "qualification": {
+          "$id": "#/properties/qualification",
+          "type": "string",
+          "title": "Qualification"
+        },
+        "program": {
+          "$id": "#/properties/program",
+          "type": "string",
+          "title": "Program of Study"
+        },
+        "graduationYear": {
+          "$id": "#/properties/graduationYear",
+          "type": "string",
+          "title": "Year of Graduation"
+        },
+        "marks": {
+          "$id": "#/properties/marks",
+          "type": "string",
+          "title": "Marks / Ranking / GPA, etc"
+        }
+      }
+    },
+    "ExperienceType": {
+      "type": "object",
+      "title": "Experience Type",
+      "required": [],
+      "description": "Experience Type",
+      "properties": {
+        "institute": {
+          "$id": "#/properties/institute",
+          "type": "string",
+          "title": "Institute Full Name"
+        },
+        "employmentType": {
+          "$id": "#/properties/employmentType",
+          "type": "string",
+          "title": "Employment Type",
+          "enum": [
+            "Permanent",
+            "Contract"
+          ]
+        },
+        "start": {
+          "$id": "#/properties/start",
+          "type": "string",
+          "format": "date",
+          "title": "Start Date"
+        },
+        "end": {
+          "$id": "#/properties/end",
+          "type": "string",
+          "format": "date",
+          "title": "End Date"
+        },
+        "teacherType": {
+          "$id": "#/properties/teacherType",
+          "type": "string",
+          "title": "Teacher Type",
+          "enum": [
+            "Head teacher",
+            "Principal",
+            "VicePrincipal",
+            "Lecture"
+          ]
+        },
+        "subjects": {
+          "$id": "#/properties/subjects",
+          "type": "array",
+          "title": "Subjects teaching at this Institute",
+          "items": {
+            "type": "string"
+          }
+        },
+        "grades": {
+          "$id": "#/properties/grades",
+          "type": "array",
+          "title": "Grades Taught (per subject taught)",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Pre-Pri.",
+              "Class I",
+              "Class II",
+              "Class III",
+              "Class IV",
+              "Class V",
+              "Class VI",
+              "Class VII",
+              "Class VIII",
+              "Class IX",
+              "Class X",
+              "Class XI",
+              "Class XII"
+            ]
+          }
+        }
+      }
+    },
+    "EducationType": {
+      "type": "object",
+      "title": "Education Type",
+      "required": [],
+      "description": "Education Type",
+      "properties": {
+        "institute": {
+          "$id": "#/properties/institute",
+          "type": "string",
+          "title": "Institute Name"
+        },
+        "board": {
+          "$id": "#/properties/board",
+          "type": "string",
+          "title": "Board of Education"
+        },
+        "medium": {
+          "$id": "#/properties/program",
+          "type": "string",
+          "title": "Medium of Education"
+        },
+        "class": {
+          "$id": "#/properties/graduationYear",
+          "type": "string",
+          "enum": [
+            "Pre-Pri.",
+            "Class I",
+            "Class II",
+            "Class III",
+            "Class IV",
+            "Class V",
+            "Class VI",
+            "Class VII",
+            "Class VIII",
+            "Class IX",
+            "Class X",
+            "Class XI",
+            "Class XII"
+          ],
+          "title": "Current Enrollment Class / Std."
+        }
+      }
+    },
+    "GuardianDetails": {
+      "type": "object",
+      "title": "Guardian Details",
+      "description": "Guardian Details",
+      "required": [],
+      "properties": {
+        "fullName": {
+          "$id": "#/properties/fullName",
+          "type": "string",
+          "title": "Full Name"
+        },
+        "relation": {
+          "$id": "#/properties/relation",
+          "type": "string",
+          "title": "Relation type"
+        },
+        "email": {
+          "$ref": "#/definitions/ContactDetails/properties/email"
+        }
+      }
+    },
+    "CertificationType": {
+      "type": "object",
+      "title": "Certification Type",
+      "description": "Certification Type",
+      "required": [],
+      "properties": {
+        "institute": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "end": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "Address": {
+      "type": "object",
+      "title": "Address Type",
+      "description": "Address Type",
+      "required": [],
+      "properties": {
+        "plot": {
+          "type": "string",
+          "title": "Plot"
+        },
+        "street": {
+          "type": "string",
+          "title": "Street"
+        },
+        "landmark": {
+          "type": "string",
+          "title": "Landmark"
+        },
+        "locality": {
+          "type": "string",
+          "title": "Locality"
+        },
+        "state": {
+          "type": "string",
+          "title": "State"
+        },
+        "district": {
+          "type": "string",
+          "title": "District"
+        },
+        "village": {
+          "type": "string",
+          "title": "Village/Town/City"
+        },
+        "pincode": {
+          "type": "string",
+          "title": "Pincode"
+        }
+      }
+    },
+
+    "Teacher": {
+      "$id": "#/properties/Teacher",
+      "type": "object",
+      "title": "The Teacher Schema",
+      "required": [
+
+      ],
+      "properties": {
+        "identityDetails": {
+          "$ref": "#/definitions/IdentityDetails"
+        },
+        "contactDetails": {
+          "$ref": "#/definitions/ContactDetails"
+        },
+        "academicQualifications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AcademicQualification"
+          },
+          "title": "Education Details"
+        },
+        "experience": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExperienceType"
+          },
+          "title": "Professional Experience"
+        }
+      }
+    }
+  },
+  "_osConfig": {
+    "osComment": [
+      "This section contains the OpenSABER specific configuration information",
+      "privateFields: Optional; list of field names to be encrypted and stored in database",
+      "signedFields: Optional; list of field names that must be pre-signed",
+      "indexFields: Optional; list of field names used for creating index. Enclose within braces to indicate it is a composite index. In this definition, (serialNum, teacherCode) is a composite index and teacherName is a single column index.",
+      "uniqueIndexFields: Optional; list of field names used for creating unique index. Field names must be different from index field name",
+      "systemFields: Optional; list of fields names used for system standard information like created, updated timestamps and userid"
+    ],
+    "privateFields": [
+      "$.identityDetails.dob",
+      "$.identityDetails.identityType",
+      "$.identityDetails.identityValue",
+      "$.contactDetails.email",
+      "$.contactDetails.mobile",
+      "$.contactDetails.address.plot",
+      "$.contactDetails.address.street",
+      "$.contactDetails.address.landmark",
+      "$.contactDetails.address.locality"
+    ],
+    "signedFields": [],
+    "indexFields": [],
+    "uniqueIndexFields": [
+      "identityValue"
+    ],
+    "systemFields": [
+      "osCreatedAt",
+      "osUpdatedAt",
+      "osCreatedBy",
+      "osUpdatedBy"
+    ],
+    "attestationPolicies": [
+      {
+        "property": "experience/[]",
+        "paths": [
+          "experience"
+        ],
+        "attestorEntity": "Institute",
+        "conditions": "(ATTESTOR#$.instituteName#.contains(REQUESTER#$.institute#))"
+      },
+      {
+        "property": "academicQualifications/[]",
+        "paths": [
+          "academicQualifications"
+        ],
+        "attestorEntity": "Institute",
+        "conditions": "(ATTESTOR#$.instituteName#.contains(REQUESTER#$.institute#))"
+      }
+    ],
+    "internalFields": [],
+    "inviteRoles": [
+      "anonymous"
+    ],
+    "enableLogin": true,
+    "credentialTemplate": {
+      "@context": [
+        "https://www.w3.org/2018/credentials/v1",
+        "https://gist.githubusercontent.com/dileepbapat/eb932596a70f75016411cc871113a789/raw/498e5af1d94784f114b32c1ab827f951a8a24def/skill"
+      ],
+      "type": [
+        "VerifiableCredential"
+      ],
+      "issuanceDate": "2021-08-27T10:57:57.237Z",
+      "credentialSubject": {
+        "type": "Person",
+        "recipientName": "{{recipientName}}",
+        "courseName": "{{courseName}}",
+        "issuedDate": "{{issuedDate}}"
+      },
+      "issuer": "did:web:sunbirdrc.dev/vc/skill"
+    },
+    "ownershipAttributes": [
+      {
+        "email":"/ContactDetails/email",
+        "mobile":"/ContactDetails/mobile",
+        "userId":"/ContactDetails/mobile"
+      }
+    ]
+  }
+}

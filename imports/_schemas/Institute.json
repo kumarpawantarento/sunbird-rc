@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": { "Institute": { "$ref": "#/definitions/Institute" } },
+  "required": ["Institute"],
+  "title": "Institute",
+  "definitions": {
+    "Institute": {
+      "$id": "#/properties/Institute",
+      "type": "object",
+      "title": "Instituteschema",
+      "required": ["name", "username"],
+      "uniqueIndexFields": ["username"],
+      "properties": {
+        "name": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "username": { "type": "string" },
+        "address": { "type": "string" }
+      }
+    }
+  },
+  "_osConfig": {
+    "enableLogin": false,
+    "ownershipAttributes": [
+      {
+        "userId": "/username",
+        "email": "/username",
+        "mobile": "/username"
+      }
+    ],
+    "inviteRoles": ["anonymous"],
+    "roles": ["anonymous"]
+  }
+}
