@@ -142,7 +142,7 @@ database:
       #     ** Example - Postgres - jdbc:postgresql://localhost:5432/yourdb
       #     * 3. NoSQL  databases (Cassandra)
       #     ** Example - cassandra - jdbc:cassandra://localhost:9160/yourdb
-      uri: ${connectionInfo_uri:jdbc:postgresql://127.0.0.1:5432/registry}
+      uri: ${connectionInfo_uri:jdbc:postgresql://localhost:5432/registry}
 
       username: ${connectionInfo_username:postgres}
       password: ${connectionInfo_password:postgres}
@@ -324,7 +324,17 @@ name: test-yaml
 enviroment: test
 workflow:
   enabled: ${workflow.enable:false}
+spring.jpa:
+  database: POSTGRESQL
+  hibernate.ddl-auto: update
+  show-sql: true
 
+spring.datasource:
+  platform: postgres
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5432/registry
+  username: postgres
+  password: postgres
 perf:
   monitoring:
     enabled: false

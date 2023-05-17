@@ -147,7 +147,7 @@ services:
       timeout: 10s
       retries: 10
   certificate-api:
-    image: dockerhub/sunbird-rc-certificate-api:1.0.0
+    image: dockerhub/sunbird-rc-certificate-api:${RELEASE_VERSION}
     environment:
       - PORT=8078
     ports:

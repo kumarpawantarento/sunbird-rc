@@ -1,11 +1,13 @@
-package dev.sunbirdrc.registry.controller;
+package com.tarento.csvreader.controller;
 
-import dev.sunbirdrc.registry.dao.StudentDTO;
-import dev.sunbirdrc.registry.handler.StudentHandler;
-import dev.sunbirdrc.registry.service.StudentService;
+import com.tarento.csvreader.dto.StudentDTO;
+import com.tarento.csvreader.handler.StudentHandler;
+import com.tarento.csvreader.service.StudentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
 @RestController
 public class StudentController {
 
@@ -32,29 +33,29 @@ public class StudentController {
     }
 
     @GetMapping("/student/get/page")
-    public List<StudentDTO> getStudentByRollNo(@RequestParam("rollNo") String rollNo, @RequestParam("page") int page,
-                                               @RequestParam("size") int size) {
+    public ResponseEntity<List<StudentDTO>> getStudentByRollNo(@RequestParam("rollNo") String rollNo, @RequestParam("page") int page,
+                                                          @RequestParam("size") int size) {
 
         List<StudentDTO> studentList = studentService.getPaginatedStudentList(rollNo, page, size);
 
-        return studentList;
+        return new ResponseEntity<>(studentList, HttpStatus.ACCEPTED);
     }
 
 
     @GetMapping("/student/get")
-    public List<StudentDTO> pushEvents() {
+    public ResponseEntity<List<StudentDTO>> pushEvents() {
 
-        return studentService.findAllStudent();
+        return new ResponseEntity<>(studentService.findAllStudent(), HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/student/get/dob/page")
-    public List<StudentDTO> getStudentByDOB(@RequestParam("startDate") String startDate,
-                                            @RequestParam("endDate") String endDate,
-                                            @RequestParam("page") int page,
-                                            @RequestParam("size") int size) {
+    public ResponseEntity<List<StudentDTO>> getStudentByDOB(@RequestParam("startDate") String startDate,
+                                                            @RequestParam("endDate") String endDate,
+                                                            @RequestParam("page") int page,
+                                                            @RequestParam("size") int size) {
 
         List<StudentDTO> studentList = studentService.getPaginatedListByDate(startDate, endDate, page, size);
 
-        return studentList;
+        return new ResponseEntity<>(studentList, HttpStatus.ACCEPTED);
     }
 }

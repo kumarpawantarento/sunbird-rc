@@ -1,11 +1,12 @@
-package dev.sunbirdrc.registry.service;
+package com.tarento.csvreader.service;
+
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvException;
-import dev.sunbirdrc.registry.dao.StudentDTO;
-import dev.sunbirdrc.registry.entities.Student;
-import dev.sunbirdrc.registry.repository.StudentRepository;
+import com.tarento.csvreader.dto.StudentDTO;
+import com.tarento.csvreader.entity.Student;
+import com.tarento.csvreader.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 @Service
 public class StudentService {
 
-    @Autowired(required=false)
+    @Autowired
     private StudentRepository studentRepository;
 
     /**
@@ -77,9 +78,9 @@ public class StudentService {
         if (studentList != null && !studentList.isEmpty()) {
             List<Student> students = studentList.stream()
                     .map(studentDTO -> Student.builder()
-                            .rollNo(studentDTO.getRollNo())
-                            .dob(getDateFromString(studentDTO.getDob()))
-                            .build()
+                                    .rollNo(studentDTO.getRollNo())
+                                    .dob(getDateFromString(studentDTO.getDob()))
+                                    .build()
                     ).collect(Collectors.toList());
 
             studentRepository.saveAll(students);
