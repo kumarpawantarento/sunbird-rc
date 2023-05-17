@@ -37,11 +37,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.opencsv</groupId>
-                <artifactId>opencsv</artifactId>
-                <version>5.7.1</version>
-            </dependency>
-            <dependency>
                 <groupId>dev.sunbirdrc</groupId>
                 <artifactId>validators</artifactId>
                 <version>2.0.3</version>
@@ -432,19 +427,6 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>5.5.2</version>
         </dependency>
 
 

@@ -142,7 +142,7 @@ database:
       #     ** Example - Postgres - jdbc:postgresql://localhost:5432/yourdb
       #     * 3. NoSQL  databases (Cassandra)
       #     ** Example - cassandra - jdbc:cassandra://localhost:9160/yourdb
-      uri: ${connectionInfo_uri:jdbc:postgresql://localhost:5432/registry}
+      uri: ${connectionInfo_uri:jdbc:postgresql://127.0.0.1:5432/registry}
 
       username: ${connectionInfo_username:postgres}
       password: ${connectionInfo_password:postgres}
@@ -234,7 +234,7 @@ keycloak-user:
   # email details should be configured in keycloak realm settings
   email-actions: ${keycloack_user_email_actions:}
 claims:
-  url: ${claims_url:http://localhost:8081}
+  url: ${claims_url:http://localhost:8082}
 authentication:
   enabled: ${authentication_enabled:false}
   publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApBm7dcA0Q/xmZVhn2mp9rmTeTleleIlDrY5w5JG5PaL9gzSd7Wj0wfnET7GBpmlpVkN/HewgZloRMMlTih81kV/RQbjLwNV0lMjXL8oIZFySGuUsdPgjwHqNbcjIUht31kYDJO+aVVbPwu9kCSvyFhzUUmG5/WfaDjjSu3daEVZlgnzsZOxYIGzvE02mkZPH78mK2Xe1H97jFsVhdoeMsu+cV0e3Aa288xR+Yqp+kqnP8d2vVmf3ZsshBzuUeWP/Xy+O29Luedxg2K6B2DekDMppfmlF1vKrNLpHAl8Zn720eMSY5tUqPxVTt7iheXeWYmrcN2sN18/7qvkaD+dkOwIDAQAB}
@@ -324,17 +324,7 @@ name: test-yaml
 enviroment: test
 workflow:
   enabled: ${workflow.enable:false}
-spring.jpa:
-  database: POSTGRESQL
-  hibernate.ddl-auto: update
-  show-sql: true
 
-spring.datasource:
-  platform: postgres
-  driverClassName: org.postgresql.Driver
-  url: jdbc:postgresql://localhost:5432/registry
-  username: postgres
-  password: postgres
 perf:
   monitoring:
     enabled: false
