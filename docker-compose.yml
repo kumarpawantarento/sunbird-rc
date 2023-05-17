@@ -71,7 +71,7 @@ services:
       timeout: 10s
       retries: 10
     networks:
-      - credential-ms_db_net  */
+      - credential-ms_db_net  
   keycloak:
     image: dockerhub/sunbird-rc-keycloak:latest
     #volumes:
