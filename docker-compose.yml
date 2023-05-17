@@ -18,7 +18,7 @@ services:
       retries: 4
     networks:
       - credential-ms_db_net
- /* registry:
+  registry:
     image: dockerhub/sunbird-rc-core:${RELEASE_VERSION}
     volumes:
       - ${PWD}/${SCHEMA_DIR-java/registry/src/main/resources/public/_schemas}:/home/sunbirdrc/config/public/_schemas
@@ -72,7 +72,7 @@ services:
       retries: 10
     networks:
       - credential-ms_db_net  */
-  /*keycloak:
+  keycloak:
     image: dockerhub/sunbird-rc-keycloak:latest
     #volumes:
     #  - ${PWD}/${KEYCLOAK_IMPORT_DIR-imports}:/opt/jboss/keycloak/imports
@@ -98,7 +98,7 @@ services:
       - "8080:8080"
       - "9990:9990"
     networks:
-      - credential-ms_db_net   */
+      - credential-ms_db_net   
   claim-ms:
     image: dockerhub/sunbird-rc-claim-ms:${RELEASE_VERSION}
     environment:
