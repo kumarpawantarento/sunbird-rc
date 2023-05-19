@@ -13,7 +13,7 @@
       "$id": "#/properties/Student",
       "type": "object",
       "title": "Student schema",
-      "required": ["StudentName","email","userId", "CourseName","Gender", "RollNo", "DateOfBirth"],
+      "required": ["StudentName","email","userId","mobile", "RollNo", "DateOfBirth"],
       "properties": {
         "userId": {
           "type": "number",
