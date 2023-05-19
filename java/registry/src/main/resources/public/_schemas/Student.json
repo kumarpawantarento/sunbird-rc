@@ -13,8 +13,12 @@
       "$id": "#/properties/Student",
       "type": "object",
       "title": "Student schema",
-      "required": ["StudentName", "CourseName","Gender", "RollNo", "DateOfBirth"],
+      "required": ["StudentName","email","userId", "CourseName","Gender", "RollNo", "DateOfBirth"],
       "properties": {
+        "userId": {
+          "type": "number",
+          "description": ""
+        },
         "StudentProfileKey": {
           "type": "number",
           "description": ""
@@ -191,7 +195,7 @@
           "type": "string",
           "description": ""
         },
-        "EmailId": {
+        "email": {
           "type": "string",
           "description": ""
         },
@@ -343,13 +347,13 @@
       {
         "name": "Institute",
         "additionalInput": {
-          "rollNo": {"type": "string"}
+          "RollNo": {"type": "string"}
         },
         "attestationProperties": {
           "name": "$.name",
           "institute": "$.institute"
         },
-        "paths": ["$.identityDetails[?(@.osid == 'PROPERTY_ID')]['institute', 'course']", "$.Student['name']"],
+        "paths": ["$.identityDetails[?(@.osid == 'PROPERTY_ID')]['institute', 'course']", "$.Student['StudentName']"],
         "type": "MANUAL",
         "attestorEntity": "Regulator",
         "conditions": "(ATTESTOR#$.institute#.contains(REQUESTER#$.institute#))",
@@ -359,7 +363,7 @@
     ],
     "ownershipAttributes": [
       {
-        "EmailId": "/email",
+        "email": "/email",
         "mobile": "/mobile"
       }
     ],
