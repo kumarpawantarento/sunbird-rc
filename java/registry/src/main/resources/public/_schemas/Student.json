@@ -349,7 +349,7 @@
           "name": "$.name",
           "institute": "$.institute"
         },
-        "paths": ["$.identityDetails[?(@.osid == 'PROPERTY_ID')]['institute', 'course']", "$.Student['name']"],
+        "paths": ["$.identityDetails[?(@.osid == 'PROPERTY_ID')]['institute', 'course']", "$.Student['StudentName']"],
         "type": "MANUAL",
         "attestorEntity": "Regulator",
         "conditions": "(ATTESTOR#$.institute#.contains(REQUESTER#$.institute#))",
@@ -359,7 +359,7 @@
     ],
     "ownershipAttributes": [
       {
-        "EmailId": "/email",
+        "EmailId": "/EmailId",
         "mobile": "/mobile"
       }
     ],
