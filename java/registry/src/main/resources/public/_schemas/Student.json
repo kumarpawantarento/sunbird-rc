@@ -323,7 +323,7 @@
           "type": "string",
           "description": ""
         },
-        "board": {
+        "Institute": {
           "type": "string",
           "description": ""
         }
@@ -340,18 +340,20 @@
       "osClaimId",
       "osState"
     ],
+    "attestationProperties": [
+      "name"
+    ],
     "attestationPolicies": [
       {
-        "name": "studentRegistration",
+        "name": "studentRegulatorAttest",
         "additionalInput": {
           "enrollmentNumber": {"type": "string"}
         },
         "attestationProperties": {
-          "name": "$.identityDetails.name",
-          "educationDetails": "$.educationDetails"
+          "name": "$.identityDetails.fullName"
         },
         "type": "MANUAL",
-        "conditions": "(ATTESTOR#$.board#.contains(REQUESTER#$.board#))",
+        "conditions": "(ATTESTOR#$.identityDetails.[*].orgname#.contains(REQUESTER#$.orgname#))",
         "attestorPlugin": "did:internal:ClaimPluginActor?entity=Regulator"
       }
     ],
