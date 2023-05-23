@@ -12,11 +12,15 @@
     "Student": {
       "$id": "#/properties/Student",
       "type": "object",
-      "title": "Student",
-      "required": ["userId","name","email","mobile", "CourseName","Gender", "RollNo", "DateOfBirth"],
+      "title": "Student schema",
+      "required": ["StudentName","email","userId","mobile", "RollNo", "DateOfBirth"],
       "properties": {
-        "userId": {
-          "type": "number",
+        "Username": {
+          "type": "string",
+          "description": ""
+        },
+        "userName": {
+          "type": "string",
           "description": ""
         },
         "StudentProfileKey": {
@@ -39,7 +43,7 @@
           "type": "string",
           "description": ""
         },
-        "name": {
+        "StudentName": {
           "type": "string",
           "description": ""
         },
@@ -340,21 +344,25 @@
       "osClaimId",
       "osState"
     ],
-    "attestationProperties": [
-      "name"
+    "attestationAttributes": [
+      "Institute"
     ],
     "attestationPolicies": [
       {
-        "name": "studentRegulatorAttest",
+        "name": "Institute",
         "additionalInput": {
-          "enrollmentNumber": {"type": "string"}
+          "RollNo": {"type": "string"}
         },
         "attestationProperties": {
-          "name": "$.identityDetails.fullName"
+          "name": "$.name",
+          "institute": "$.institute"
         },
+        "paths": ["$.identityDetails[?(@.osid == 'PROPERTY_ID')]['institute', 'course']", "$.Student['StudentName']"],
         "type": "MANUAL",
-        "conditions": "(ATTESTOR#$.identityDetails.[*].orgname#.contains(REQUESTER#$.orgname#))",
-        "attestorPlugin": "did:internal:ClaimPluginActor?entity=Regulator"
+        "attestorEntity": "Regulator",
+        "conditions": "(ATTESTOR#$.institute#.contains(REQUESTER#$.institute#))",
+        "attestorPlugin": "did:internal:ClaimPluginActor?entity=Regulator",
+        "credentialTemplate": {}
       }
     ],
     "ownershipAttributes": [
@@ -363,7 +371,7 @@
         "mobile": "/mobile"
       }
     ],
-    "inviteRoles": ["Regulator"],
+    "inviteRoles": ["anonymous"],
     "roles": ["anonymous"]
   }
 }
