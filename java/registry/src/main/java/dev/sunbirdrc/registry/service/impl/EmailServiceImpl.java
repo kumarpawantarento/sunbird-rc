@@ -85,10 +85,10 @@
 //            List<String> emailList = null;
 //
 //
-////            if (CollectionUtils.isNotEmpty(emailList)) {
-////                String template = notificationService.getEmailTemplateFile( (String) request.get(JsonKey.EMAIL_TEMPLATE_TYPE), requestContext);
-////                sendMail(request, emailList, template, requestContext);
-////            }
+//            if (CollectionUtils.isNotEmpty(emailList)) {
+//                String template = notificationService.getEmailTemplateFile( (String) request.get(JsonKey.EMAIL_TEMPLATE_TYPE), requestContext);
+//                sendMail(request, emailList, template, requestContext);
+//            }
 //        }
 //
 //        Response res = new Response();
@@ -107,19 +107,19 @@
 //            StringWriter writer = new StringWriter();
 //            long interval = 60000L;
 //
-////            if (null == connection.getTransport()
-////                    || ((System.currentTimeMillis()) - timer >= interval)
-////                    || (!connection.getTransport().isConnected())) {
-////                resetConnection(requestContext);
-////            }
-////            sendEmail.send(
-////                    emails.toArray(new String[emails.size()]),
-////                    (String) request.get(JsonKey.SUBJECT),
-////                    context,
-////                    writer,
-////                    connection.getSession(),
-////                    connection.getTransport());
-////        } catch (Exception e) {
+//            if (null == connection.getTransport()
+//                    || ((System.currentTimeMillis()) - timer >= interval)
+//                    || (!connection.getTransport().isConnected())) {
+//                resetConnection(requestContext);
+//            }
+//            sendEmail.send(
+//                    emails.toArray(new String[emails.size()]),
+//                    (String) request.get(JsonKey.SUBJECT),
+//                    context,
+//                    writer,
+//                    connection.getSession(),
+//                    connection.getTransport());
+//        } catch (Exception e) {
 //
 ////        }
 //    }

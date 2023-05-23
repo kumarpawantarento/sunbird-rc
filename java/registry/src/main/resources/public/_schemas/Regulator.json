@@ -7,21 +7,25 @@
     }
   },
   "required": [],
-  "title": "Regulator_Data",
+  "title": "Regulator Data",
   "definitions": {
     "Regulator": {
       "$id": "#/properties/Regulator",
       "type": "object",
       "title": "Regulator schema",
-      "required": ["name", "mobile", "email", "regulator", "regulatorKey"],
-      "uniqueIndexFields": ["name"],
+      "required": ["name", "phoneNumber", "email", "regulator", "regulatorKey"],
+      "uniqueIndexFields": ["username"],
       "properties": {
         "name": { "type": "string" },
-        "mobile": { "type": "string" },
+        "phoneNumber": { "type": "string" },
         "email": { "type": "string" },
         "regulator": { "type": "string" },
         "regulatorKey": { "type": "string" },
-        "board": { "type": "string" }
+        "institute": {
+          "$id": "#/properties/institute",
+          "type": "string",
+          "title": "Institute Full Name"
+        }
       }
     }
   },
@@ -53,7 +57,7 @@
         "conditions": "(ATTESTOR#$.instituteName#.contains(REQUESTER#$.institute#))"
       }
     ],
-    "enableLogin": false,
+    "enableLogin": true,
     "credentialTemplate": {
       "@context": [
         "https://www.w3.org/2018/credentials/v1",
@@ -74,7 +78,7 @@
     "ownershipAttributes": [
       {
         "email": "/email",
-        "mobile": "/mobile",
+        "mobile": "/phoneNumber",
         "userId": "/email"
       }
     ],

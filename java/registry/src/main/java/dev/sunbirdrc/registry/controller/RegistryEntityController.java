@@ -15,16 +15,21 @@ import dev.sunbirdrc.registry.entities.AttestationPolicy;
 import dev.sunbirdrc.registry.exception.AttestationNotFoundException;
 import dev.sunbirdrc.registry.exception.RecordNotFoundException;
 import dev.sunbirdrc.registry.exception.UnAuthorizedException;
+import dev.sunbirdrc.registry.helper.EntityStateHelper;
 import dev.sunbirdrc.registry.middleware.MiddlewareHaltException;
 import dev.sunbirdrc.registry.middleware.util.Constants;
 import dev.sunbirdrc.registry.middleware.util.DateUtil;
 import dev.sunbirdrc.registry.middleware.util.JSONUtil;
 import dev.sunbirdrc.registry.middleware.util.OSSystemFields;
+import dev.sunbirdrc.registry.model.dto.MailDto;
 import dev.sunbirdrc.registry.service.FileStorageService;
 import dev.sunbirdrc.registry.service.ICertificateService;
+import dev.sunbirdrc.registry.service.RegistryService;
+import dev.sunbirdrc.registry.service.impl.CertificateServiceImpl;
 import dev.sunbirdrc.registry.transform.Configuration;
 import dev.sunbirdrc.registry.transform.Data;
 import dev.sunbirdrc.registry.transform.ITransformer;
+import dev.sunbirdrc.registry.util.ClaimRequestClient;
 import dev.sunbirdrc.validators.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -49,7 +54,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static dev.sunbirdrc.registry.Constants.*;
-import static dev.sunbirdrc.registry.middleware.util.Constants.ENTITY_TYPE;
+import static dev.sunbirdrc.registry.middleware.util.Constants.*;
 
 @RestController
 public class RegistryEntityController extends AbstractController {
@@ -58,15 +63,17 @@ public class RegistryEntityController extends AbstractController {
     private static Logger logger = LoggerFactory.getLogger(RegistryEntityController.class);
 
     @Autowired
-    private ICertificateService certificateService;
+    private CertificateServiceImpl certificateService;
 
+    @Autowired
+    EntityStateHelper entityStateHelper;
+    @Autowired
+    RegistryService registryService;
     @Autowired
     private FileStorageService fileStorageService;
 
     @Autowired
     private AsyncRequest asyncRequest;
-
-
 
     @Value("${authentication.enabled:true}") boolean securityEnabled;
     @Value("${certificate.enableExternalTemplates:false}") boolean externalTemplatesEnabled;
@@ -115,10 +122,10 @@ public class RegistryEntityController extends AbstractController {
 
     @RequestMapping(value = "/api/v1/{entityName}/{entityId}", method = RequestMethod.DELETE)
     public ResponseEntity<Object> deleteEntity(
-      @PathVariable String entityName,
-      @PathVariable String entityId,
-      @RequestHeader HttpHeaders header,
-      HttpServletRequest request
+            @PathVariable String entityName,
+            @PathVariable String entityId,
+            @RequestHeader HttpHeaders header,
+            HttpServletRequest request
     ) {
         String userId = USER_ANONYMOUS;
         logger.info("Deleting entityType {} with Id {}", entityName, entityId);
@@ -472,8 +479,8 @@ public class RegistryEntityController extends AbstractController {
     @RequestMapping(value = "/api/v2/{entityName}/{entityId}", method = RequestMethod.GET, produces =
             {MediaType.APPLICATION_PDF_VALUE, MediaType.TEXT_HTML_VALUE, Constants.SVG_MEDIA_TYPE})
     public ResponseEntity<String> getEntityTypeWithUrl(@PathVariable String entityName,
-                                                @PathVariable String entityId,
-                                                HttpServletRequest request) {
+                                                       @PathVariable String entityId,
+                                                       HttpServletRequest request) {
         if (registryHelper.doesEntityOperationRequireAuthorization(entityName) && securityEnabled) {
             try {
                 registryHelper.authorize(entityName, entityId, request);
@@ -489,7 +496,13 @@ public class RegistryEntityController extends AbstractController {
             String readerUserId = getUserId(entityName, request);
             JsonNode node = registryHelper.readEntity(readerUserId, entityName, entityId, false, null, false)
                     .get(entityName);
+
             JsonNode signedNode = objectMapper.readTree(node.get(OSSystemFields._osSignedData.name()).asText());
+
+            String email = node.get("email").toString();
+            logger.info(email);
+            String name = node.get("name").toString();
+            logger.info(name);
             Object certificate = certificateService.getCertificate(signedNode,
                     entityName,
                     entityId,
@@ -517,6 +530,15 @@ public class RegistryEntityController extends AbstractController {
                 logger.error(e.getMessage());
                 throw new Exception("Problem in certificate url generation");
             }
+            // Mail Send Functionality -Start
+            MailDto mail = new MailDto();
+            mail.setName(node.get("name").asText());
+            mail.setEmailAddress(node.get("email").asText());
+            mail.setCertificate(url);
+
+            certificateService.shareCertificateMail(mail);
+            // Mail Send Functionality End
+
             ResponseEntity<String> objectResponseEntity = new ResponseEntity<>(url, HttpStatus.OK);
             return objectResponseEntity;
         } catch (Exception exception) {

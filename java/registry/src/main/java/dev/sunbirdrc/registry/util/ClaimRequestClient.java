@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.sunbirdrc.pojos.dto.ClaimDTO;
 import dev.sunbirdrc.registry.controller.RegistryController;
+import dev.sunbirdrc.registry.model.dto.MailDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,8 @@ public class ClaimRequestClient {
     private static final String CLAIMS_PATH = "/api/v1/claims";
     private static final String FETCH_CLAIMS_PATH = "/api/v1/getClaims";
 
+    private static final String MAIL_SEND_URL = "api/v1/sendMail";
+
     ClaimRequestClient(@Value("${claims.url}") String claimRequestUrl, RestTemplate restTemplate) {
         this.claimRequestUrl = claimRequestUrl;
         this.restTemplate = restTemplate;
@@ -34,6 +37,11 @@ public class ClaimRequestClient {
         HashMap<String, Object> hashMap = restTemplate.postForObject(claimRequestUrl + CLAIMS_PATH, claimDTO, HashMap.class);
         logger.info("Claim has successfully risen {}", hashMap.toString());
         return hashMap;
+    }
+
+    public void sendMail(MailDto mail) {
+        restTemplate.postForObject(claimRequestUrl + MAIL_SEND_URL, mail, HashMap.class);
+        logger.info("Mail has successfully sent ...");
     }
 
     public JsonNode getClaims(JsonNode jsonNode, Pageable pageable, String entityName) {
