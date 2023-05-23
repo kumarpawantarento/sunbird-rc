@@ -3,7 +3,9 @@ package dev.sunbirdrc.registry.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.sunbirdrc.pojos.ComponentHealthInfo;
 import dev.sunbirdrc.registry.middleware.util.Constants;
+import dev.sunbirdrc.registry.model.dto.MailDto;
 import dev.sunbirdrc.registry.service.ICertificateService;
+import dev.sunbirdrc.registry.util.ClaimRequestClient;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +33,8 @@ public class CertificateServiceImpl implements ICertificateService {
     private final String certificateHealthCheckURL;
     private final RestTemplate restTemplate;
 
+    private final ClaimRequestClient claimRequestClient;
+
     private boolean signatureEnabled;
     private static Logger logger = LoggerFactory.getLogger(CertificateServiceImpl.class);
 
@@ -38,12 +42,13 @@ public class CertificateServiceImpl implements ICertificateService {
                                   @Value("${certificate.apiUrl}") String certificateUrl,
                                   @Value("${signature.enabled}") boolean signatureEnabled,
                                   @Value("${certificate.healthCheckURL}") String certificateHealthCheckURL,
-                                  RestTemplate restTemplate) {
+                                  RestTemplate restTemplate,ClaimRequestClient claimRequestClient) {
         this.templateBaseUrl = templateBaseUrl;
         this.certificateUrl = certificateUrl;
         this.restTemplate = restTemplate;
         this.certificateHealthCheckURL = certificateHealthCheckURL;
         this.signatureEnabled = signatureEnabled;
+        this.claimRequestClient = claimRequestClient;
     }
 
     @Override
@@ -66,6 +71,18 @@ public class CertificateServiceImpl implements ICertificateService {
             logger.error("Get certificate failed", e);
         }
         return null;
+    }
+
+
+    public void shareCertificateMail(MailDto mail) {
+        try {
+            logger.info("Sharing Certificate start");
+            claimRequestClient.sendMail(mail);
+            logger.info("Sharing Certificate end");
+        } catch (Exception e) {
+            logger.error("Get certificate failed", e);
+        }
+
     }
 
     @NotNull
