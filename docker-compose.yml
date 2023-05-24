@@ -16,29 +16,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 4
-  db:
-    image: postgres
-    volumes:
-      - ./${DB_DIR-db-data}:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_DB=registry
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    networks:
+      - credential-ms_db_net
   registry:
     image: dockerhub/sunbird-rc-core:${RELEASE_VERSION}
     volumes:
       - ${PWD}/${SCHEMA_DIR-java/registry/src/main/resources/public/_schemas}:/home/sunbirdrc/config/public/_schemas
     environment:
-      - connectionInfo_uri=jdbc:postgresql://db:5432/registry
+      - connectionInfo_uri=jdbc:postgresql://localhost:5432/registry
       - connectionInfo_username=postgres
-      - connectionInfo_password=postgres
+      - connectionInfo_password=yoursupersecret
       - elastic_search_connection_url=es:9200
       - elastic_search_auth_enabled=${ELASTIC_SECURITY_ENABLED-false}
       - elastic_search_username=${ELASTIC_SEARCH_USERNAME-elastic}
@@ -78,13 +65,13 @@ services:
     depends_on:
       es:
         condition: service_healthy
-      db:
-        condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -nv -t1 --spider http://localhost:8081/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 10
+    networks:
+      - credential-ms_db_net  
   keycloak:
     image: dockerhub/sunbird-rc-keycloak:latest
     #volumes:
@@ -92,11 +79,11 @@ services:
     environment:
       - KEYCLOAK_LOGO=https://svgshare.com/i/hCs.svg
       - DB_VENDOR=postgres
-      - DB_ADDR=db
+      - DB_ADDR=localhost
       - DB_PORT=5432
       - DB_DATABASE=registry
       - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_PASSWORD=yoursupersecret
       - KEYCLOAK_USER=${KEYCLOAK_ADMIN_USER-admin}
       - KEYCLOAK_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD-admin}
     #  - KEYCLOAK_IMPORT=/opt/jboss/keycloak/imports/realm-export.json
@@ -110,21 +97,18 @@ services:
     ports:
       - "8080:8080"
       - "9990:9990"
-    depends_on:
-      db:
-        condition: service_healthy
+    networks:
+      - credential-ms_db_net   
   claim-ms:
     image: dockerhub/sunbird-rc-claim-ms:${RELEASE_VERSION}
     environment:
-      - connectionInfo_uri=jdbc:postgresql://db:5432/registry
+      - connectionInfo_uri=jdbc:postgresql://localhost:5432/registry
       - connectionInfo_username=postgres
-      - connectionInfo_password=postgres
+      - connectionInfo_password=yoursupersecret
       - sunbirdrc_url=http://registry:8081
     ports:
       - "8082:8082"
     depends_on:
-      db:
-        condition: service_started
       registry:
         condition: service_started
     healthcheck:
@@ -132,6 +116,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+    networks:
+      - credential-ms_db_net  
   certificate-signer:
     image: dockerhub/sunbird-rc-certificate-signer:${RELEASE_VERSION}
     environment:
@@ -233,29 +219,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
-  nginx:
-    image: dockerhub/sunbird-rc-nginx
-    ports:
-      - "80:80"
-    depends_on:
-      registry:
-        condition: service_healthy
-      context-proxy-service:
-        condition: service_started
-      public-key-service:
-        condition: service_started
-      keycloak:
-        condition: service_started
-      claim-ms:
-        condition: service_started
-      file-storage:
-        condition: service_started
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "localhost:80" ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
+      
+networks:
+  credential-ms_db_net:
+    external: true      
