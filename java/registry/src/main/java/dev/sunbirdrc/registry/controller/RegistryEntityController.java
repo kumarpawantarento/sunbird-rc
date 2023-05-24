@@ -18,18 +18,16 @@ import dev.sunbirdrc.registry.exception.UnAuthorizedException;
 import dev.sunbirdrc.registry.helper.EntityStateHelper;
 import dev.sunbirdrc.registry.middleware.MiddlewareHaltException;
 import dev.sunbirdrc.registry.middleware.util.Constants;
-import dev.sunbirdrc.registry.middleware.util.DateUtil;
 import dev.sunbirdrc.registry.middleware.util.JSONUtil;
 import dev.sunbirdrc.registry.middleware.util.OSSystemFields;
 import dev.sunbirdrc.registry.model.dto.MailDto;
+import dev.sunbirdrc.registry.model.dto.Status;
 import dev.sunbirdrc.registry.service.FileStorageService;
-import dev.sunbirdrc.registry.service.ICertificateService;
 import dev.sunbirdrc.registry.service.RegistryService;
 import dev.sunbirdrc.registry.service.impl.CertificateServiceImpl;
 import dev.sunbirdrc.registry.transform.Configuration;
 import dev.sunbirdrc.registry.transform.Data;
 import dev.sunbirdrc.registry.transform.ITransformer;
-import dev.sunbirdrc.registry.util.ClaimRequestClient;
 import dev.sunbirdrc.validators.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -64,6 +62,12 @@ public class RegistryEntityController extends AbstractController {
 
     @Autowired
     private CertificateServiceImpl certificateService;
+
+    @Value("${Logo.imgBaseUri:https://casa.upsmfac.org/UploadedFiles/Student/}")
+    private String imgBaseUri;
+
+    @Value("${Logo.imgFormat:.jpg}")
+    private String imgFormat;
 
     @Autowired
     EntityStateHelper entityStateHelper;
@@ -248,7 +252,9 @@ public class RegistryEntityController extends AbstractController {
     ) {
         logger.info("MODE: {}", asyncRequest.isEnabled());
         logger.info("MODE: {}", asyncRequest.getWebhookUrl());
+
         logger.info("Adding entity {}", rootNode);
+        extractImgUrl(rootNode);
         ResponseParams responseParams = new ResponseParams();
         Response response = new Response(Response.API_ID.CREATE, "OK", responseParams);
         Map<String, Object> result = new HashMap<>();
@@ -284,6 +290,12 @@ public class RegistryEntityController extends AbstractController {
         }
     }
 
+    private void extractImgUrl(JsonNode rootNode) {
+        String imgUrl = generateImageURL(rootNode);
+        ObjectNode node = (ObjectNode) rootNode;
+        node.put("orgLogo",imgUrl);
+        logger.info("orgLogo" + node.get("orgLogo"));
+    }
 
 
     @RequestMapping(value = "/api/v1/{entityName}/{entityId}/**", method = RequestMethod.PUT)
@@ -496,23 +508,11 @@ public class RegistryEntityController extends AbstractController {
             String readerUserId = getUserId(entityName, request);
             JsonNode node = registryHelper.readEntity(readerUserId, entityName, entityId, false, null, false)
                     .get(entityName);
-
-            ObjectNode objnode = (ObjectNode)node;
-            String rollNo = node.get("rollNumber").asText();
-            String enrollmentNumber = node.get("enrollmentNumber").asText();;
-            String year = node.get("examYear").asText();;
             // call ur method
-            String imgUrl = generateImageURL(year,rollNo,enrollmentNumber);
-            logger.info(imgUrl);
-            // put
-            objnode.put("orgLogo",imgUrl);
-            logger.info("Org Logo::"+node.get("orgLogo").asText());
+            Status status = new Status();
             JsonNode signedNode = objectMapper.readTree(node.get(OSSystemFields._osSignedData.name()).asText());
-
             String email = node.get("email").toString();
-            logger.info(email);
             String name = node.get("name").toString();
-            logger.info(name);
             Object certificate = certificateService.getCertificate(signedNode,
                     entityName,
                     entityId,
@@ -535,21 +535,28 @@ public class RegistryEntityController extends AbstractController {
                     logger.info(fileName1);
                     ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
                     url = fileStorageService.saveCertificateAndGetUrl(bin, fileName1);
+                    status.setCertUrl(url);
+                    status.setCertStatus("Success");
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage());
+                status.setCertStatus("Failed");
                 throw new Exception("Problem in certificate url generation");
             }
-            // Mail Send Functionality -Start
-            MailDto mail = new MailDto();
-            mail.setName(node.get("name").asText());
-            mail.setEmailAddress(node.get("email").asText());
-            mail.setCertificate(url);
-
-            certificateService.shareCertificateMail(mail);
-            // Mail Send Functionality End
-
-            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>(url, HttpStatus.OK);
+            try {
+                // Mail Send Functionality -Start
+                MailDto mail = new MailDto();
+                mail.setName(node.get("name").asText());
+                mail.setEmailAddress(node.get("email").asText());
+                mail.setCertificate(url);
+                certificateService.shareCertificateMail(mail);
+                // Mail Send Functionality End
+                status.setMailStatus("Success");
+            }catch (Exception e){
+                status.setMailStatus("Failed");
+                e.printStackTrace();
+            }
+            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Certificate status::"+status.getCertStatus()+"::Mail Status::"+status.getMailStatus(), HttpStatus.OK);
             return objectResponseEntity;
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -557,16 +564,20 @@ public class RegistryEntityController extends AbstractController {
         }
 
     }
-    private  String generateImageURL(String year, String rollNo, String enrollmentNumber){
-        String url="https://casa.upsmfac.org/UploadedFiles/Student/";
-        url=url.concat(year);
-        if (rollNo != null) {
-            url=url.concat("/rp" +rollNo);
-        } else
+    private  String generateImageURL(JsonNode rootNode){
+        JsonNode rollNumber = rootNode.get("rollNumber");
+        JsonNode enrollmentNumber = rootNode.get("enrollmentNumber");
+        JsonNode examYear = rootNode.get("examYear");
+        String url=imgBaseUri;
+        if(examYear!=null)
+           url = url.concat(examYear.asText());
         if (enrollmentNumber != null) {
-            url=url.concat("E" +enrollmentNumber);
+            url=url.concat("/E" +enrollmentNumber.asText());
+        } else if (rollNumber != null) {
+            url=url.concat("/rp" +rollNumber.asText());
         }
-        url=url.concat("jpg");
+        url = url.concat(imgFormat);
+        logger.debug("Generated Img url::"+url);
         return url;
     }
 

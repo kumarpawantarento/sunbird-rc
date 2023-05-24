@@ -61,6 +61,10 @@ registry:
   redis:
     host: ${redis_host:localhost}
     port: ${redis_port:6379}
+  LOGO:
+    url: ${imgBaseUri:https://casa.upsmfac.org/UploadedFiles/Student/}
+    format : ${imgFormat:.jpg}
+
 
 workflow:
   enabled: ${workflow.enable:false}
