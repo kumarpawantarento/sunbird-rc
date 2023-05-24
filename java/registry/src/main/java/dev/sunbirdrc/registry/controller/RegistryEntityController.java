@@ -497,6 +497,16 @@ public class RegistryEntityController extends AbstractController {
             JsonNode node = registryHelper.readEntity(readerUserId, entityName, entityId, false, null, false)
                     .get(entityName);
 
+            ObjectNode objnode = (ObjectNode)node;
+            String rollNo = node.get("rollNumber").asText();
+            String enrollmentNumber = node.get("enrollmentNumber").asText();;
+            String year = node.get("examYear").asText();;
+            // call ur method
+            String imgUrl = generateImageURL(year,rollNo,enrollmentNumber);
+            logger.info(imgUrl);
+            // put
+            objnode.put("orgLogo",imgUrl);
+            logger.info("Org Logo::"+node.get("orgLogo").asText());
             JsonNode signedNode = objectMapper.readTree(node.get(OSSystemFields._osSignedData.name()).asText());
 
             String email = node.get("email").toString();
@@ -546,6 +556,18 @@ public class RegistryEntityController extends AbstractController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
+    }
+    private  String generateImageURL(String year, String rollNo, String enrollmentNumber){
+        String url="https://casa.upsmfac.org/UploadedFiles/Student/";
+        url=url.concat(year);
+        if (rollNo != null) {
+            url=url.concat("/rp" +rollNo);
+        } else
+        if (enrollmentNumber != null) {
+            url=url.concat("E" +enrollmentNumber);
+        }
+        url=url.concat("jpg");
+        return url;
     }
 
     private String getTemplateUrlFromRequest(HttpServletRequest request, String entityName) {
