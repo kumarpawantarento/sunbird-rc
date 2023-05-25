@@ -42,6 +42,10 @@
         "rollNumber": {
           "type": "string"
         },
+        ,
+        "enrollmentNumber": {
+          "type": "string"
+        },
         "note": {
           "type": "string"
         },
