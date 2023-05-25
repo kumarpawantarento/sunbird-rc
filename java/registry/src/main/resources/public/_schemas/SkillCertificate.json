@@ -42,7 +42,9 @@
         "rollNumber": {
           "type": "string"
         },
-        ,
+        "examYear": {
+          "type": "string"
+        },
         "enrollmentNumber": {
           "type": "string"
         },
