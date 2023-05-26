@@ -82,7 +82,7 @@
       "contact"
     ],
     "ownershipAttributes": [],
-    "roles": [],
+    "roles": ["anonymous"],
     "inviteRoles": [
       "anonymous"
     ],
