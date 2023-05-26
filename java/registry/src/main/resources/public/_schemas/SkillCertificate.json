@@ -14,7 +14,7 @@
     "SkillCertificate": {
       "$id": "#/properties/SkillCertificate",
       "type": "object",
-      "title": "The SkillCertificate Schema",
+      "title": "SkillCertificate",
       "required": [
         "name",
         "contact"
