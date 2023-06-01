@@ -165,7 +165,7 @@ async function generateRawCertificate(certificate, templateUrl, entityId, entity
         }
     }
 
-    const dataURL = 'https://raw.githubusercontent.com/kumarpawantarento/templates/main/img/user.png';
+    const dataURL = await QRCode.toDataURL(qrData, {scale: 3});;
       //await QRCode.toDataURL(qrData, {scale: 3});
     const certificateData = {
         ...prepareDataForCertificateWithQRCode(certificateRaw, dataURL),
@@ -176,8 +176,6 @@ async function generateRawCertificate(certificate, templateUrl, entityId, entity
 
 async function createCertificatePDF(certificate, templateUrl, res, entityId, entityName, entity) {
     let rawCertificate = await generateRawCertificate(certificate, templateUrl, entityId, entityName, entity);
-    console.log('rawCertificate');
-    console.log(rawCertificate);
     const pdfBuffer = await createPDF(rawCertificate);
     res.statusCode = 200;
     return pdfBuffer;

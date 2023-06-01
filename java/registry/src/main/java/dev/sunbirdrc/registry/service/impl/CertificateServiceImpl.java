@@ -3,6 +3,7 @@ package dev.sunbirdrc.registry.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.sunbirdrc.pojos.ComponentHealthInfo;
 import dev.sunbirdrc.registry.middleware.util.Constants;
+import dev.sunbirdrc.registry.model.dto.BarCode;
 import dev.sunbirdrc.registry.model.dto.MailDto;
 import dev.sunbirdrc.registry.service.ICertificateService;
 import dev.sunbirdrc.registry.util.ClaimRequestClient;
@@ -83,6 +84,19 @@ public class CertificateServiceImpl implements ICertificateService {
             logger.error("Get certificate failed", e);
         }
 
+    }
+
+    public BarCode getBarCode(BarCode barCode) {
+        BarCode node = null;
+        try {
+            logger.debug("BarCode start");
+            node = claimRequestClient.getBarCode(barCode);
+            logger.debug("BarCode end");
+            return node;
+        } catch (Exception e) {
+            logger.error("Get BarCode failed", e);
+        }
+        return node;
     }
 
     @NotNull

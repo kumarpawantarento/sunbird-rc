@@ -20,6 +20,7 @@ import dev.sunbirdrc.registry.middleware.MiddlewareHaltException;
 import dev.sunbirdrc.registry.middleware.util.Constants;
 import dev.sunbirdrc.registry.middleware.util.JSONUtil;
 import dev.sunbirdrc.registry.middleware.util.OSSystemFields;
+import dev.sunbirdrc.registry.model.dto.BarCode;
 import dev.sunbirdrc.registry.model.dto.MailDto;
 import dev.sunbirdrc.registry.model.dto.Status;
 import dev.sunbirdrc.registry.service.FileStorageService;
@@ -254,7 +255,10 @@ public class RegistryEntityController extends AbstractController {
         logger.info("MODE: {}", asyncRequest.getWebhookUrl());
 
         logger.info("Adding entity {}", rootNode);
+        // adding imageUrl
         extractImgUrl(rootNode);
+        // adding barCode
+        extractBarCode(rootNode);
         ResponseParams responseParams = new ResponseParams();
         Response response = new Response(Response.API_ID.CREATE, "OK", responseParams);
         Map<String, Object> result = new HashMap<>();
@@ -287,6 +291,22 @@ public class RegistryEntityController extends AbstractController {
             responseParams.setStatus(Response.Status.UNSUCCESSFUL);
             responseParams.setErrmsg(e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void extractBarCode(JsonNode rootNode) {
+        JsonNode node = rootNode.get("barCode");
+        BarCode code = new BarCode();
+        if(node != null){
+            code.setBarCodeText(node.asText());
+        }
+        String batCodeText = code.getBarCodeText();
+
+        if(batCodeText != null){
+            BarCode barCodeNode = certificateService.getBarCode(code);
+            ObjectNode objNode = (ObjectNode) rootNode;
+            objNode.put("barCode",barCodeNode.getBarCodeValue());
+            logger.info("BarCodeValue::"+barCodeNode.getBarCodeValue());
         }
     }
 
