@@ -73,15 +73,6 @@ function formatDate(givenDate) {
     return `${padDigit(day)}-${monthName}-${year}`;
 }
 
-async function getOrgLogo() {
-    console.log("Start buffer");
-    const url = 'https://raw.githubusercontent.com/kumarpawantarento/templates/main/img/user.png';
-    const imagData = fs.readFileSync(url);
-    //const response = await axios.get(url,  { responseType: 'arraybuffer' });
-    //const buffer = Buffer.from(response.data, "base64");
-    //console.log(buffer);
-    return imagData;
-}
 
 async function getCandidateLogo(url) {
     console.log("Start buffer");
@@ -139,8 +130,6 @@ const getRequestBody = async (req) => {
 async function generateRawCertificate(certificate, templateUrl, entityId, entityName, entity) {
     let certificateRaw = certificate;
     // TODO: based on type template will be picked
-
-    var logo = getOrgLogo;
     
     const certificateTemplateUrl = templateUrl;
     const qrCodeType = envData.qrType || '';
@@ -166,7 +155,7 @@ async function generateRawCertificate(certificate, templateUrl, entityId, entity
     }
 
     const dataURL = await QRCode.toDataURL(qrData, {scale: 3});;
-      //await QRCode.toDataURL(qrData, {scale: 3});
+    
     const certificateData = {
         ...prepareDataForCertificateWithQRCode(certificateRaw, dataURL),
         entity
