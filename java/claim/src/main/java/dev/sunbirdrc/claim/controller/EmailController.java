@@ -1,8 +1,12 @@
 package dev.sunbirdrc.claim.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dev.sunbirdrc.claim.dto.BarCode;
 import dev.sunbirdrc.claim.dto.MailDto;
 import dev.sunbirdrc.claim.service.EmailService;
+import net.sourceforge.barbecue.Barcode;
+import net.sourceforge.barbecue.BarcodeFactory;
+import net.sourceforge.barbecue.BarcodeImageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +17,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 
 @Controller
@@ -22,7 +32,7 @@ public class EmailController {
     @Autowired
     private EmailService emailService;
     private static final Logger logger = LoggerFactory.getLogger(EmailController.class);
-
+    private static final Font BARCODE_TEXT_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 8);
     @Autowired
     public EmailController(EmailService emailService) {
         this.emailService = emailService;
@@ -40,6 +50,47 @@ public class EmailController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/api/v1/barcode", method = RequestMethod.POST)
+    public ResponseEntity<BarCode> getBarCode(@RequestHeader HttpHeaders headers,
+                                                        @RequestBody BarCode requestBody) {
+        BarCode code = new BarCode();
+        String barCode = requestBody.getBarCodeText();
+        logger.info("In Controller::"+barCode);
+        String text  = null;
+        try {
+            text  = generateBarcodeImage(barCode);
+            code.setBarCodeText(barCode);
+            code.setBarCodeValue(text);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return new ResponseEntity<>(code, HttpStatus.OK);
+    }
+
+    public static String generateBarcodeImage(String barcodeText) throws Exception {
+        Barcode barcode = BarcodeFactory.createCode128(barcodeText);
+        logger.info(barcodeText);
+        barcode.setFont(BARCODE_TEXT_FONT);
+        barcode.setResolution(200);
+        BufferedImage image = BarcodeImageHandler.getImage(barcode);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(
+                RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_OFF);
+        g.dispose();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);
+        String data = DatatypeConverter.printBase64Binary(baos.toByteArray());
+        data = data.replaceAll("&amp;","\'&\'");
+        data = data.replaceAll("&","\'&\'");
+        String imageString = "data:image/png;base64," + data;
+
+       // String html = "<img src='" + imageString + "'>";
+        //html = Pattern.quote(html);
+        logger.info(imageString);
+        return imageString;
+    }
     private String prepareBody(String idLink, String name) {
 
         String body = "Hi "+ name + ","+

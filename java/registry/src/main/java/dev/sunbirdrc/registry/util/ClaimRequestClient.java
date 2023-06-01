@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.sunbirdrc.pojos.dto.ClaimDTO;
 import dev.sunbirdrc.registry.controller.RegistryController;
+import dev.sunbirdrc.registry.model.dto.BarCode;
 import dev.sunbirdrc.registry.model.dto.MailDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class ClaimRequestClient {
     private static final String FETCH_CLAIMS_PATH = "/api/v1/getClaims";
 
     private static final String MAIL_SEND_URL = "api/v1/sendMail";
+    private static final String BAR_CODE_API = "api/v1/barcode";
 
     ClaimRequestClient(@Value("${claims.url}") String claimRequestUrl, RestTemplate restTemplate) {
         this.claimRequestUrl = claimRequestUrl;
@@ -42,6 +44,13 @@ public class ClaimRequestClient {
     public void sendMail(MailDto mail) {
         restTemplate.postForObject(claimRequestUrl + MAIL_SEND_URL, mail, HashMap.class);
         logger.info("Mail has successfully sent ...");
+    }
+
+    public BarCode getBarCode(BarCode barCode) {
+        logger.info("in Client::"+barCode.getBarCodeText());
+        BarCode node = restTemplate.postForObject(claimRequestUrl + BAR_CODE_API, barCode, BarCode.class);
+        logger.info("BarCode generated ...");
+        return node;
     }
 
     public JsonNode getClaims(JsonNode jsonNode, Pageable pageable, String entityName) {
