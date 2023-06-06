@@ -18,6 +18,22 @@ services:
       retries: 4
     networks:
       - credential-ms_db_net
+      
+    db:
+    image: postgres
+    volumes:
+      - ./${DB_DIR-db-data}:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=registry
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   registry:
     image: dockerhub/sunbird-rc-core:${RELEASE_VERSION}
     volumes:
