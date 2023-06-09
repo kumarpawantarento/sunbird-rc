@@ -41,12 +41,12 @@ public class EmailController {
     @RequestMapping(value = "/api/v1/sendMail", method = RequestMethod.POST)
     public ResponseEntity<Map<String, Object>> sendMail(@RequestHeader HttpHeaders headers,
                                                 @RequestBody MailDto requestBody) {
-
         String email = requestBody.getEmailAddress();
         String idLink = requestBody.getCertificate();
         String name = requestBody.getName();
-        String body = prepareBody(idLink, name);
-        emailService.sendMail(email, "Identity card for Student", body);
+        String credType = requestBody.getCredentialsType();
+        String body = prepareBody(idLink, name, credType);
+        emailService.sendMail(email, credType + " for Student", body);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -91,13 +91,15 @@ public class EmailController {
         logger.info(imageString);
         return imageString;
     }
-    private String prepareBody(String idLink, String name) {
+    private String prepareBody(String idLink, String name, String credType) {
 
         String body = "Hi "+ name + ","+
                 "\n" +
                 " \n" +
                 "\n" +
-                "We are pleased to inform you that a registration credential has been issued to you. You can view and download the credential by using the following link. \n" +
+                "We are pleased to inform you that a " +credType
+                +
+                " has been issued to you. You can view and download the credential by using the following link. \n" +
                 "\n" +
                 "\n" +
                 idLink +

@@ -10,7 +10,7 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "dev.sunbirdrc.registry.middleware", "dev.sunbirdrc.claim"})
+@ComponentScan(basePackages = { "dev.sunbirdrc.registry.middleware", "dev.sunbirdrc.claim","dev.sunbirdrc.claim.service"})
 public class ClaimsApplication {
     public static void main(String[] args) {
         SpringApplication.run(ClaimsApplication.class, args);

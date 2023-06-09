@@ -20,6 +20,9 @@
         "contact"
       ],
       "properties": {
+        "Username": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
