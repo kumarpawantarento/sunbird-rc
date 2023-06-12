@@ -149,8 +149,8 @@ database:
       uri: ${connectionInfo_uri:jdbc:postgresql://localhost:5432/registry}
 
       username: ${connectionInfo_username:postgres}
-      #password: ${connectionInfo_password:yoursupersecret}
-      password: ${connectionInfo_password:postgres}
+      password: ${connectionInfo_password:yoursupersecret}
+      #password: ${connectionInfo_password:postgres}
       maxPoolSize: ${connectionInfo_maxPoolSize:200}
 
       # Any other shard information follows...
@@ -230,7 +230,7 @@ keycloak:
   resource: ${sunbird_sso_client_id:registry-frontend}
 keycloak-admin:
   client-id: ${sunbird_sso_admin_client_id:admin-api}
-  client-secret: ${sunbird_sso_admin_client_secret:a5517fd3-e088-435b-adff-9c94af3601f7}
+  client-secret: ${sunbird_sso_admin_client_secret:e5654e31-27e5-450e-9a7b-22154972b6a6}
 keycloak-user:
   set-default-password: ${sunbird_keycloak_user_set_password:true}
   default-password: ${sunbird_keycloak_user_password:admin@admin}
@@ -242,7 +242,7 @@ claims:
   url: ${claims_url:http://localhost:8082}
 authentication:
   enabled: ${authentication_enabled:false}
-  publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoVi2qJ0LJQGtXrz6SWpOEk9uRGd3kSll8FSFYR6/za1oHo8FjyFndGAz1jP/lFPvWXN8gi1GQArPY2/F4XGuOLsQ2expLA30hjsYa/TUftKQe+12+/s/tp3aTs+qathoM7GyYw7YTJlSSlbFJyc9nwm4cA/fV2+oouvjJpuKS4sjktJUQkF0xXYnS7sS2/3Ubct7MRnufrQkr515hOF+RdW17ERyfOJ4tuG1IOaXXYENRU94EOrB+n2AEKKr2VI7yYSoNrFEskUxDodJrphU/thCHZzmgoAbl7KlrBDjoidMn7QMOCk6gyqY3WZekfjarTRJM/oBWLg2tUmiGEx4PQIDAQAB}
+  publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApBm7dcA0Q/xmZVhn2mp9rmTeTleleIlDrY5w5JG5PaL9gzSd7Wj0wfnET7GBpmlpVkN/HewgZloRMMlTih81kV/RQbjLwNV0lMjXL8oIZFySGuUsdPgjwHqNbcjIUht31kYDJO+aVVbPwu9kCSvyFhzUUmG5/WfaDjjSu3daEVZlgnzsZOxYIGzvE02mkZPH78mK2Xe1H97jFsVhdoeMsu+cV0e3Aa288xR+Yqp+kqnP8d2vVmf3ZsshBzuUeWP/Xy+O29Luedxg2K6B2DekDMppfmlF1vKrNLpHAl8Zn720eMSY5tUqPxVTt7iheXeWYmrcN2sN18/7qvkaD+dkOwIDAQAB}
   realm:  ${authentication_realm:sunbird-rc}
   url:  ${authentication_url:localhost:8443/auth}
 
@@ -305,7 +305,7 @@ elastic:
     #if authentication is enabled
     auth_enabled: ${elastic_search_auth_enabled:false}
     elastic_username: ${elastic_search_username:elastic}
-    elastic_password: ${elastic_search_password:}
+    elastic_password: ${elastic_search_password:elastic}
 filestorage:
   url: ${filestorage_connection_url:http://localhost:9000}
   accesskey: ${filestorage_access_key:admin}
