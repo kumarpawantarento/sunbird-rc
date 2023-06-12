@@ -81,6 +81,9 @@
         },
         "trainingCode": {
           "type": "string"
+        },
+        "credType": {
+          "type": "string"
         }
       }
     }
@@ -118,6 +121,7 @@
         "dated": "{{dated}}",
         "trainingTitle": "{{trainingTitle}}",
         "trainingCode": "{{trainingCode}}",
+        "credType": "{{credType}}",
         "barCode": "{{barCode}}"
       },
       "issuer": "did:web:sunbirdrc.dev/vc/skill"

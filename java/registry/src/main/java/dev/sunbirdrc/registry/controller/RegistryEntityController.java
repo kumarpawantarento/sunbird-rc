@@ -48,9 +48,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+
 
 import static dev.sunbirdrc.registry.Constants.*;
 import static dev.sunbirdrc.registry.middleware.util.Constants.*;
@@ -80,8 +82,10 @@ public class RegistryEntityController extends AbstractController {
     @Autowired
     private AsyncRequest asyncRequest;
 
-    @Value("${authentication.enabled:true}") boolean securityEnabled;
-    @Value("${certificate.enableExternalTemplates:false}") boolean externalTemplatesEnabled;
+    @Value("${authentication.enabled:true}")
+    boolean securityEnabled;
+    @Value("${certificate.enableExternalTemplates:false}")
+    boolean externalTemplatesEnabled;
 
     @RequestMapping(value = "/api/v1/{entityName}/invite", method = RequestMethod.POST)
     public ResponseEntity<Object> invite(
@@ -109,11 +113,11 @@ public class RegistryEntityController extends AbstractController {
             responseParams.setStatus(Response.Status.SUCCESSFUL);
             watch.start(TAG);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        }catch (MiddlewareHaltException | ValidationException | OwnerCreationException e) {
+        } catch (MiddlewareHaltException | ValidationException | OwnerCreationException e) {
             return badRequestException(responseParams, response, e.getMessage());
-        }catch (UnAuthorizedException unAuthorizedException){
+        } catch (UnAuthorizedException unAuthorizedException) {
             return createUnauthorizedExceptionResponse(unAuthorizedException);
-        }catch (Exception e) {
+        } catch (Exception e) {
             if (e.getCause() != null && e.getCause().getCause() != null &&
                     e.getCause().getCause() instanceof InvocationTargetException) {
                 Throwable targetException = ((InvocationTargetException) (e.getCause().getCause())).getTargetException();
@@ -226,7 +230,7 @@ public class RegistryEntityController extends AbstractController {
                 registryHelper.revokeExistingCredentials(entityName, entityId, userId,
                         existingNode.get(entityName).get(OSSystemFields._osSignedData.name()).asText(""));
             }
-            registryHelper.invalidateAttestation(entityName, entityId, userId,null);
+            registryHelper.invalidateAttestation(entityName, entityId, userId, null);
             registryHelper.autoRaiseClaim(entityName, entityId, userId, existingNode, newRootNode, emailId);
             responseParams.setErrmsg("");
             responseParams.setStatus(Response.Status.SUCCESSFUL);
@@ -297,23 +301,23 @@ public class RegistryEntityController extends AbstractController {
     private void extractBarCode(JsonNode rootNode) {
         JsonNode node = rootNode.get("barCode");
         BarCode code = new BarCode();
-        if(node != null){
+        if (node != null) {
             code.setBarCodeText(node.asText());
         }
         String batCodeText = code.getBarCodeText();
 
-        if(batCodeText != null){
+        if (batCodeText != null) {
             BarCode barCodeNode = certificateService.getBarCode(code);
             ObjectNode objNode = (ObjectNode) rootNode;
-            objNode.put("barCode",barCodeNode.getBarCodeValue());
-            logger.info("BarCodeValue::"+barCodeNode.getBarCodeValue());
+            objNode.put("barCode", barCodeNode.getBarCodeValue());
+            logger.info("BarCodeValue::" + barCodeNode.getBarCodeValue());
         }
     }
 
     private void extractImgUrl(JsonNode rootNode) {
         String imgUrl = generateImageURL(rootNode);
         ObjectNode node = (ObjectNode) rootNode;
-        node.put("orgLogo",imgUrl);
+        node.put("orgLogo", imgUrl);
         logger.info("orgLogo" + node.get("orgLogo"));
     }
 
@@ -349,7 +353,7 @@ public class RegistryEntityController extends AbstractController {
             }
             responseParams.setErrmsg("");
             responseParams.setStatus(Response.Status.SUCCESSFUL);
-            registryHelper.invalidateAttestation(entityName, entityId, userId,registryHelper.getPropertyToUpdate(request,entityId));
+            registryHelper.invalidateAttestation(entityName, entityId, userId, registryHelper.getPropertyToUpdate(request, entityId));
             watch.stop(tag);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
@@ -402,7 +406,8 @@ public class RegistryEntityController extends AbstractController {
 
     private JsonNode getAttestationSignedData(String attestationId, JsonNode node) throws AttestationNotFoundException, JsonProcessingException {
         JsonNode attestationNode = getAttestationNode(attestationId, node);
-        if(attestationNode.get(OSSystemFields._osAttestedData.name()) == null) throw new AttestationNotFoundException();
+        if (attestationNode.get(OSSystemFields._osAttestedData.name()) == null)
+            throw new AttestationNotFoundException();
         attestationNode = objectMapper.readTree(attestationNode.get(OSSystemFields._osAttestedData.name()).asText());
         return attestationNode;
     }
@@ -411,7 +416,7 @@ public class RegistryEntityController extends AbstractController {
     private JsonNode getAttestationNode(String attestationId, JsonNode node) {
         Iterator<JsonNode> iterator = node.iterator();
         JsonNode attestationNode = null;
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             attestationNode = iterator.next();
             if (attestationNode.get(uuidPropertyName).toString().equals(attestationId)) {
                 break;
@@ -531,8 +536,7 @@ public class RegistryEntityController extends AbstractController {
             // call ur method
             Status status = new Status();
             JsonNode signedNode = objectMapper.readTree(node.get(OSSystemFields._osSignedData.name()).asText());
-            String email = node.get("email").toString();
-            String name = node.get("name").toString();
+
             Object certificate = certificateService.getCertificate(signedNode,
                     entityName,
                     entityId,
@@ -541,42 +545,16 @@ public class RegistryEntityController extends AbstractController {
                     JSONUtil.removeNodesByPath(node, definitionsManager.getExcludingFieldsForEntity(entityName))
             );
 
-            // uploading to File Storage
             String url = null;
             try {
-                if (certificate != null) {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    ObjectOutputStream objOutStream = new ObjectOutputStream(bos);
-                    objOutStream.writeObject(certificate);
-                    objOutStream.flush();
-                    byte[] bytes = bos.toByteArray();
-                    // prepare object name
-                    String fileName1 = entityId + ".PDF";
-                    logger.info(fileName1);
-                    ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
-                    url = fileStorageService.saveCertificateAndGetUrl(bin, fileName1);
-                    status.setCertUrl(url);
-                    status.setCertStatus("Success");
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-                status.setCertStatus("Failed");
-                throw new Exception("Problem in certificate url generation");
+                url = getCertificate(entityId, status, certificate);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            try {
-                // Mail Send Functionality -Start
-                MailDto mail = new MailDto();
-                mail.setName(node.get("name").asText());
-                mail.setEmailAddress(node.get("email").asText());
-                mail.setCertificate(url);
-                certificateService.shareCertificateMail(mail);
-                // Mail Send Functionality End
-                status.setMailStatus("Success");
-            }catch (Exception e){
-                status.setMailStatus("Failed");
-                e.printStackTrace();
-            }
-            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Certificate status::"+status.getCertStatus()+"::Mail Status::"+status.getMailStatus(), HttpStatus.OK);
+            shareCredentials(node, status, url);
+
+            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Certificate status::" + status.getCertStatus() + "::Mail Status::" + status.getMailStatus(), HttpStatus.OK);
+
             return objectResponseEntity;
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -584,20 +562,79 @@ public class RegistryEntityController extends AbstractController {
         }
 
     }
-    private  String generateImageURL(JsonNode rootNode){
+
+    private void shareCredentials(JsonNode node, Status status, String url) {
+        try {
+            // Mail Send Functionality -Start
+            JsonNode email = node.get("email");
+            JsonNode name = node.get("name");
+            JsonNode credentialsType = node.get("credType");
+            MailDto mail = new MailDto();
+            if (mail != null && name != null) {
+                mail.setName(name.asText());
+                mail.setEmailAddress(email.asText());
+                mail.setCertificate(url);
+                if (credentialsType != null) {
+                    mail.setCredentialsType(credentialsType.asText());
+                }
+                certificateService.shareCertificateMail(mail);
+                // Mail Send Functionality End
+                status.setMailStatus("Success");
+            } else {
+                status.setMailStatus("Email id not provided");
+            }
+        } catch (Exception e) {
+            status.setMailStatus("Failed");
+            e.printStackTrace();
+        }
+    }
+
+    @Nullable
+
+    private String getCertificate(String entityId, Status status, Object certificate) throws Exception {
+        String url = null;
+
+        if (certificate != null) {
+
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                try (ObjectOutputStream objOutStream = new ObjectOutputStream(bos)) {
+                        objOutStream.writeObject(certificate);
+                        objOutStream.flush();
+                        byte[] bytes = bos.toByteArray();
+                        // prepare object name
+                        String fileName = entityId + ".PDF";
+                        logger.info(fileName);
+                        String dto = certificateService.saveToGCS(bytes, fileName);
+                        url = dto;
+                        status.setCertUrl(url);
+                        status.setCertStatus("Success");
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+                status.setCertStatus("Failed");
+                throw new Exception("Problem in certificate URL generation", e);
+            }
+
+        }
+        return url;
+    }
+
+
+
+    private String generateImageURL(JsonNode rootNode) {
         JsonNode rollNumber = rootNode.get("rollNumber");
         JsonNode enrollmentNumber = rootNode.get("enrollmentNumber");
         JsonNode examYear = rootNode.get("examYear");
-        String url=imgBaseUri;
-        if(examYear!=null)
-           url = url.concat(examYear.asText());
+        String url = imgBaseUri;
+        if (examYear != null)
+            url = url.concat(examYear.asText());
         if (enrollmentNumber != null) {
-            url=url.concat("/E" +enrollmentNumber.asText());
+            url = url.concat("/E" + enrollmentNumber.asText());
         } else if (rollNumber != null) {
-            url=url.concat("/rp" +rollNumber.asText());
+            url = url.concat("/rp" + rollNumber.asText());
         }
         url = url.concat(imgFormat);
-        logger.debug("Generated Img url::"+url);
+        logger.debug("Generated Img url::" + url);
         return url;
     }
 
@@ -631,7 +668,7 @@ public class RegistryEntityController extends AbstractController {
             @RequestHeader HttpHeaders header, HttpServletRequest request) {
         boolean requireLDResponse = false;
         boolean requireVCResponse = false;
-        for (MediaType t: header.getAccept()) {
+        for (MediaType t : header.getAccept()) {
             if (t.toString().equals(Constants.LD_JSON_MEDIA_TYPE)) {
                 requireLDResponse = true;
                 break;
@@ -655,7 +692,7 @@ public class RegistryEntityController extends AbstractController {
         try {
             String readerUserId = getUserId(entityName, request);
             JsonNode node = getEntityJsonNode(entityName, entityId, requireLDResponse, readerUserId);
-            if(requireLDResponse) {
+            if (requireLDResponse) {
                 addJsonLDSpec(node);
             } else if (requireVCResponse) {
                 String vcString = node.get(OSSystemFields._osSignedData.name()).textValue();
@@ -697,7 +734,7 @@ public class RegistryEntityController extends AbstractController {
         }
         JsonNode node = (JsonNode) resultContent.getData();
         JsonNode entityNode = node.get(entityName);
-        return entityNode!=null?entityNode:node;
+        return entityNode != null ? entityNode : node;
     }
 
     @RequestMapping(value = "/api/v1/{entityName}", method = RequestMethod.GET)
@@ -750,6 +787,7 @@ public class RegistryEntityController extends AbstractController {
         }
 
     }
+
     //TODO: check the usage and deprecate the api if not used
     @RequestMapping(value = "/api/v1/{entityName}/{entityId}", method = RequestMethod.PATCH)
     public ResponseEntity<Object> attestEntity(

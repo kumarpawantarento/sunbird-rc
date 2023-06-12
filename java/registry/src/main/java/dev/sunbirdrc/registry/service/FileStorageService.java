@@ -2,6 +2,7 @@ package dev.sunbirdrc.registry.service;
 
 import dev.sunbirdrc.pojos.ComponentHealthInfo;
 import dev.sunbirdrc.pojos.HealthIndicator;
+
 import dev.sunbirdrc.registry.model.dto.DocumentsResponse;
 import io.minio.*;
 import io.minio.errors.*;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -30,6 +32,9 @@ import java.util.stream.Collectors;
 
 import static dev.sunbirdrc.registry.middleware.util.Constants.CONNECTION_FAILURE;
 import static dev.sunbirdrc.registry.middleware.util.Constants.SUNBIRD_FILE_STORAGE_SERVICE_NAME;
+
+
+
 
 @Service
 public class FileStorageService implements HealthIndicator {
@@ -59,6 +64,15 @@ public class FileStorageService implements HealthIndicator {
 		logger.info("File has successfully saved with URL");
 		return objectUrl;
 	}
+
+	public String saveCertificateInGCSAndGetUrl(InputStream inputStream, String objectName) throws Exception {
+		String objectUrl = null;
+		logger.info("Saving the file in the location {}", objectName);
+		objectUrl = getSignedUrl(objectName);
+		logger.info("File has successfully saved with URL");
+		return objectUrl;
+	}
+
 
 	public DocumentsResponse saveAndFetchFileNames(MultipartFile[] files, String requestedURI) {
 		String objectPath = getDirectoryPath(requestedURI);

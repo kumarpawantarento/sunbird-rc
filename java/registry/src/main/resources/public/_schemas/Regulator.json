@@ -7,7 +7,7 @@
     }
   },
   "required": [],
-  "title": "Regulator Data",
+  "title": "Regulator",
   "definitions": {
     "Regulator": {
       "$id": "#/properties/Regulator",

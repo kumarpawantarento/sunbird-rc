@@ -6,6 +6,16 @@ public class MailDto {
     private String certificate;
     private String emailAddress;
 
+    public String getCredentialsType() {
+        return credentialsType;
+    }
+
+    public void setCredentialsType(String credentialsType) {
+        this.credentialsType = credentialsType;
+    }
+
+    private String credentialsType;
+
     public String getName() {
         return name;
     }
