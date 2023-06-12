@@ -52,9 +52,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.BiFunction;
+
 
 import static dev.sunbirdrc.registry.Constants.*;
 import static dev.sunbirdrc.registry.middleware.util.Constants.*;
@@ -592,50 +590,12 @@ public class RegistryEntityController extends AbstractController {
     }
 
     @Nullable
-    private String getCertificateUrl(String entityId, Status status, Object certificate) throws Exception {
-        String url = null;
-        ByteArrayOutputStream bos = null;
-        ObjectOutputStream objOutStream = null;
-        ByteArrayInputStream bin = null;
-
-        try {
-            if (certificate != null) {
-                bos = new ByteArrayOutputStream();
-                objOutStream = new ObjectOutputStream(bos);
-                objOutStream.writeObject(certificate);
-                objOutStream.flush();
-                byte[] bytes = bos.toByteArray();
-                // prepare object name
-                String fileName1 = entityId + ".PDF";
-                logger.info(fileName1);
-                bin = new ByteArrayInputStream(bytes);
-                url = fileStorageService.saveCertificateAndGetUrl(bin, fileName1);
-                status.setCertUrl(url);
-                status.setCertStatus("Success");
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            status.setCertStatus("Failed");
-             throw new Exception("Problem in certificate url generation");
-        } finally {
-            if (bos != null) {
-                bos.close();
-            }
-            if (objOutStream != null) {
-                objOutStream.close();
-            }
-            if (bin != null) {
-                bin.close();
-            }
-        }
-        return url;
-    }
 
     private String getCertificate(String entityId, Status status, Object certificate) throws Exception {
         String url = null;
 
         if (certificate != null) {
-            ByteArrayInputStream bin = null;
+
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
                 try (ObjectOutputStream objOutStream = new ObjectOutputStream(bos)) {
                         objOutStream.writeObject(certificate);
@@ -644,8 +604,8 @@ public class RegistryEntityController extends AbstractController {
                         // prepare object name
                         String fileName = entityId + ".PDF";
                         logger.info(fileName);
-                        bin = new ByteArrayInputStream(bytes);
-                        url = fileStorageService.saveCertificateAndGetUrl(bin, fileName);
+                        String dto = certificateService.saveToGCS(bytes, fileName);
+                        url = dto;
                         status.setCertUrl(url);
                         status.setCertStatus("Success");
                 }
@@ -653,8 +613,6 @@ public class RegistryEntityController extends AbstractController {
                 logger.error(e.getMessage());
                 status.setCertStatus("Failed");
                 throw new Exception("Problem in certificate URL generation", e);
-            }finally {
-                bin.close();
             }
 
         }

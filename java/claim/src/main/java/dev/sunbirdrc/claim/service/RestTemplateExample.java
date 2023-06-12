@@ -1,97 +1,60 @@
 package dev.sunbirdrc.claim.service;
 
+import dev.sunbirdrc.claim.dto.FileDto;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class RestTemplateExample {
     public static void main(String[] args) {
         // Create RestTemplate instance
-        RestTemplate restTemplate = new RestTemplate();
 
-        // Add String message converter
-        restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+            String serviceUrl = "http://localhost:8082/api/v1/files/upload";
+            File fileToSend = new File("D:\\1-09152724-dd8e-4ec1-a5fe-36f4227d2451.PDF");
 
-        String requestBody = "{\n" +
-                "    \"request\": {\n" +
-                "        \"notifications\": [\n" +
-                "            {\n" +
-                "                \"ids\": [\n" +
-                "                    \"alt.n2-7oawvyxu@yopmail.com\"\n" +
-                "                ],\n" +
-                "                \"priority\": 1,\n" +
-                "                \"type\": \"email\",\n" +
-                "                \"action\": {\n" +
-                "                    \"type\": \"member-added\",\n" +
-                "                    \"category\": \"member-added\",\n" +
-                "                    \"template\": {\n" +
-                "                        \"config\": {\n" +
-                "                            \"sender\": \"shishir.suman@tarento.com\",\n" +
-                "                            \"subject\": \"Hello to sunbird user\"\n" +
-                "                        },\n" +
-                "                        \"type\": \"PDF\",\n" +
-                "                        \"params\": {\n" +
-                "                            \"orgImageUrl\": \"UPSMF\",\n" +
-                "                            \"name\": \"UPSMF\",\n" +
-                "                            \"actionUrl\": \"http://localhost:9000/health\",\n" +
-                "                            \"orgName\": \"UPSMF\",\n" +
-                "                            \"ActionName\": \"UPSMF\",\n" +
-                "                            \"param1\" : \"Credentials\",\n" +
-                "                            \"param2\" : \"LINK\"\n" +
-                "                        }\n" +
-                "                    },\n" +
-                "                    \"createdBy\": {\n" +
-                "                        \"id\": \"12345\",\n" +
-                "                        \"name\": \"John\",\n" +
-                "                        \"type\": \"User\"\n" +
-                "                    },\n" +
-                "                     \"additionalInfo\": {\n" +
-                "                        \"sender\": \"shishir.suman@tarento.com\",\n" +
-                "                        \"subject\": \"Please find your Credentials\"\n" +
-                "                    }\n" +
-                "                }\n" +
-                "            }\n" +
-                "        ]\n" +
-                "    }\n" +
-                "}";
-        // Set request headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("accept", "application/json");
-        headers.set("notification-delivery-mode", "sync");
-        headers.set("ts",getTime());
-        headers.set("X-msgid", getTime());
+            try {
+                // Read the file content as byte array
+                byte[] fileBytes = Files.readAllBytes(Path.of(fileToSend.getAbsolutePath()));
 
-        // Set request URL
-        String url = "http://localhost:9000/v2/notification/send";
+                // Create HttpHeaders with Content-Type as multipart/form-data
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+                headers.set("accept", MediaType.MULTIPART_FORM_DATA_VALUE);
+                // Create the file part with the byte array
+                ByteArrayResource resource = new ByteArrayResource(fileBytes) {
+                    @Override
+                    public String getFilename() {
+                        return fileToSend.getName();
+                    }
+                };
 
-        // Set request method
-        HttpMethod method = HttpMethod.POST;
+                // Create the request body with the file part
+                MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+                body.add("file", resource);
 
-        // Create HttpEntity with headers
-        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+                // Create the HTTP entity with headers and body
+                HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        // Send the HTTP request and get the response
-        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                // Make the POST request to the service
+                RestTemplate restTemplate = new RestTemplate();
+                ResponseEntity<String> response = restTemplate.postForEntity(serviceUrl, requestEntity, String.class);
 
-        // Get the response body
-        String responseBody = responseEntity.getBody();
+                System.out.println("Response received: " + response.getBody());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        // Process the response body as needed
-        System.out.println(responseBody);
     }
 
-    public static String getTime() {
-        // Get the current timestamp
-        LocalDateTime now = LocalDateTime.now();
 
-        // Format the timestamp using a specific pattern
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String formattedTimestamp = now.format(formatter);
-
-        return formattedTimestamp;
-    }
 }

@@ -10,12 +10,14 @@ import dev.sunbirdrc.registry.model.dto.MailDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
 
 import java.util.HashMap;
 
@@ -29,6 +31,8 @@ public class ClaimRequestClient {
 
     private static final String MAIL_SEND_URL = "api/v1/sendMail";
     private static final String BAR_CODE_API = "api/v1/barcode";
+
+    private static final String GCS_CODE_API = "api/v1/files/upload";
 
     ClaimRequestClient(@Value("${claims.url}") String claimRequestUrl, RestTemplate restTemplate) {
         this.claimRequestUrl = claimRequestUrl;
@@ -44,6 +48,34 @@ public class ClaimRequestClient {
     public void sendMail(MailDto mail) {
         restTemplate.postForObject(claimRequestUrl + MAIL_SEND_URL, mail, HashMap.class);
         logger.info("Mail has successfully sent ...");
+    }
+
+    public String saveFileToGCS(byte[] file, String name) {
+        HttpHeaders headers = new HttpHeaders();
+        //headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.set("accept", MediaType.MULTIPART_FORM_DATA_VALUE);
+        String serviceUrl = claimRequestUrl + "/"+GCS_CODE_API;
+        HttpMethod method = HttpMethod.POST;
+        ByteArrayResource resource = new ByteArrayResource(file) {
+            @Override
+            public String getFilename() {
+                return name;
+            }
+        };
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", resource);
+
+        // Create the HTTP entity with headers and body
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        // Make the POST request to the service
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.postForEntity(serviceUrl, requestEntity, String.class);
+
+        logger.info("Save to GCS successfully ...");
+        return response.toString();
     }
 
     public BarCode getBarCode(BarCode barCode) {

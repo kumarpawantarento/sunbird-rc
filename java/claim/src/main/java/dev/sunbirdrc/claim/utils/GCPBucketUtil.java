@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class GCPBucketUtil {
@@ -60,9 +62,12 @@ public class GCPBucketUtil {
             RandomString id = new RandomString();
             Blob blob = bucket.create(gcpDirectoryName + "//" + fileName, fileData, contentType);
 
+            URL url =  blob.signUrl(2, TimeUnit.HOURS,Storage.SignUrlOption.withV4Signature());
+            String fileUrl = url.toString();
+
             if(blob != null){
                 LOGGER.debug("File successfully uploaded to GCS");
-                return new FileDto(blob.getName(), blob.getMediaLink());
+                return new FileDto(blob.getName(), fileUrl);
             }
 
         }catch (GCPFileUploadException e){

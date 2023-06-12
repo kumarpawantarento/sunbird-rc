@@ -86,6 +86,19 @@ public class CertificateServiceImpl implements ICertificateService {
 
     }
 
+    public String saveToGCS(byte[] inputStream, String objectName) {
+        String url = null;
+        try {
+
+            logger.info("Uploading File GCP start");
+            url = claimRequestClient.saveFileToGCS(inputStream,objectName);
+            logger.info("Uploading File GCP start");
+        } catch (Exception e) {
+            logger.error("Uploading File GCP", e);
+        }
+        return url;
+    }
+
     public BarCode getBarCode(BarCode barCode) {
         BarCode node = null;
         try {

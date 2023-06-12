@@ -67,7 +67,7 @@ registry:
 
 
 workflow:
-  enabled: ${workflow.enable:true}
+  enabled: ${workflow.enable:false}
 
 async:
   enabled: ${async_enabled:false}

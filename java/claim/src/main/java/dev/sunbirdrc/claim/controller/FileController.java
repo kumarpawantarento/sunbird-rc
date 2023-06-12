@@ -33,10 +33,14 @@ public class FileController {
     @RequestMapping("upload")
     public ResponseEntity<String> uploadFile(
             @RequestParam MultipartFile file) throws IOException {
-
+        String fileUrl = null;
         FileDto fileDto = fileService.uploadFile(file);
+        if(fileDto!=null)
+        {
+            fileUrl = fileDto.getFileUrl();
+        }
 
-        return ResponseEntity.ok("File uploaded successfully:"+fileDto);
+        return ResponseEntity.ok(fileUrl);
     }
 
     @RequestMapping("download")
