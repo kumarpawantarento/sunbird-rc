@@ -43,6 +43,9 @@ public class GCPBucketUtil {
     @Value("${gcp.dir.name}")
     private String gcpDirectoryName;
 
+    @Value("${gcp.file.validity}")
+    private Integer validity;
+
 
     public FileDto uploadFile(MultipartFile multipartFile, String fileName, String contentType) {
 
@@ -59,11 +62,12 @@ public class GCPBucketUtil {
 
             Bucket bucket = storage.get(gcpBucketId,Storage.BucketGetOption.fields());
 
-            RandomString id = new RandomString();
             Blob blob = bucket.create(gcpDirectoryName + "/" + fileName, fileData, contentType);
-
-            URL url =  blob.signUrl(2, TimeUnit.HOURS,Storage.SignUrlOption.withV4Signature());
+            LOGGER.debug("Storing GCS file:"+fileName);
+            validity=validity > 10 ? 10 : validity;
+            URL url =  blob.signUrl(validity, TimeUnit.HOURS,Storage.SignUrlOption.withV4Signature());
             String fileUrl = url.toString();
+            LOGGER.debug("File url of GCS: "+fileUrl);
 
             if(blob != null){
                 LOGGER.debug("File successfully uploaded to GCS");

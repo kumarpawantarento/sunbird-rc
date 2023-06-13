@@ -19,6 +19,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -86,16 +89,11 @@ public class CertificateServiceImpl implements ICertificateService {
 
     }
 
-    public String saveToGCS(byte[] inputStream, String objectName) {
+    public String saveToGCS(Object certificate, String entityId) {
         String url = null;
-        try {
-
-            logger.info("Uploading File GCP start");
-            url = claimRequestClient.saveFileToGCS(inputStream,objectName);
-            logger.info("Uploading File GCP start");
-        } catch (Exception e) {
-            logger.error("Uploading File GCP", e);
-        }
+        logger.info("Uploading File GCP.");
+        url = claimRequestClient.saveFileToGCS(certificate, entityId);
+        logger.info("Uploading File GCP complete");
         return url;
     }
 

@@ -136,7 +136,8 @@ async function generateRawCertificate(certificate, templateUrl, entityId, entity
     let qrData;
     console.log('QR Code type: ', qrCodeType);
     if (qrCodeType.toUpperCase() === URL) {
-        qrData = `${envData.certDomainUrl}/certs/${entityId}?t=${qrCodeType}&entity=${entityName}${process.env.ADDITIONAL_QUERY_PARAMS || ""}`;
+        //qrData = `${envData.certDomainUrl}/certs/${entityId}?t=${qrCodeType}&entity=${entityName}${process.env.ADDITIONAL_QUERY_PARAMS || ""}`;
+        qrData = `${envData.certDomainUrl}/api/v1//files/download?fileName=/${entityId}+.PDF}`;
     } else {
         const zip = new JSZip();
         zip.file("certificate.json", certificateRaw, {
