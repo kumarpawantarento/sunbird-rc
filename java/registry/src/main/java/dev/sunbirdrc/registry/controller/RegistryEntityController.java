@@ -46,7 +46,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -604,8 +603,8 @@ public class RegistryEntityController extends AbstractController {
                         // prepare object name
                         String fileName = entityId + ".PDF";
                         logger.info(fileName);
-                        String dto = certificateService.saveToGCS(bytes, fileName);
-                        url = dto;
+                        url = certificateService.saveToGCS(bytes, fileName);
+                        logger.info(url);
                         status.setCertUrl(url);
                         status.setCertStatus("Success");
                 }
