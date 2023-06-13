@@ -2,7 +2,7 @@ const publicKeyPem = process.env.CERTIFICATE_PUBLIC_KEY || '';
 // eslint-disable-next-line max-len
 const privateKeyPem = process.env.CERTIFICATE_PRIVATE_KEY || '';
 const qrType = process.env.QR_TYPE || 'URL';
-const certDomainUrl = process.env.CERTIFICATE_DOMAIN_URL || "http://10.0.2.18:8078";
+const certDomainUrl = process.env.CERTIFICATE_DOMAIN_URL || "http://10.0.2.18:8082";
 const smsAuthKey = "";
 module.exports = {
   publicKeyPem,

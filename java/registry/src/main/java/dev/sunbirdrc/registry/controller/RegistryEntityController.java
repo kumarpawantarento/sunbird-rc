@@ -46,9 +46,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -60,6 +57,7 @@ import static dev.sunbirdrc.registry.middleware.util.Constants.*;
 public class RegistryEntityController extends AbstractController {
 
     private static final String TRANSACTION_ID = "transactionId";
+
     private static Logger logger = LoggerFactory.getLogger(RegistryEntityController.class);
 
     @Autowired
@@ -544,15 +542,16 @@ public class RegistryEntityController extends AbstractController {
                     JSONUtil.removeNodesByPath(node, definitionsManager.getExcludingFieldsForEntity(entityName))
             );
 
-            String url = null;
-            try {
-                url = getCertificate(entityId, status, certificate);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            String url = getCredUrl(entityId, status, certificate);
+            if(url != null){
+                status.setCertStatus("Success");
+                shareCredentials(node, status, url);
             }
-            shareCredentials(node, status, url);
+            else{
+                status.setCertStatus("Failed");
+            }
 
-            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Certificate status::" + status.getCertStatus() + "::Mail Status::" + status.getMailStatus(), HttpStatus.OK);
+            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Credentials status::" + status.getCertStatus() + "::Mail Status::" + status.getMailStatus(), HttpStatus.OK);
 
             return objectResponseEntity;
         } catch (Exception exception) {
@@ -560,6 +559,17 @@ public class RegistryEntityController extends AbstractController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @Nullable
+    private String getCredUrl(final String entityId, Status status, Object certificate) throws Exception {
+        String url = null;
+        try {
+            url = getCertificate(entityId, status, certificate);
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+        return url;
     }
 
     private void shareCredentials(JsonNode node, Status status, String url) {
@@ -592,33 +602,15 @@ public class RegistryEntityController extends AbstractController {
 
     private String getCertificate(String entityId, Status status, Object certificate) throws Exception {
         String url = null;
-
         if (certificate != null) {
 
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                try (ObjectOutputStream objOutStream = new ObjectOutputStream(bos)) {
-                        objOutStream.writeObject(certificate);
-                        objOutStream.flush();
-                        byte[] bytes = bos.toByteArray();
-                        // prepare object name
-                        String fileName = entityId + ".PDF";
-                        logger.info(fileName);
-                        url = certificateService.saveToGCS(bytes, fileName);
-                        logger.info(url);
-                        status.setCertUrl(url);
-                        status.setCertStatus("Success");
-                }
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                status.setCertStatus("Failed");
-                throw new Exception("Problem in certificate URL generation", e);
-            }
-
+            logger.info("Credentials generation for EntityId:"+entityId);
+            url = certificateService.saveToGCS(certificate, entityId);
+            logger.debug("Final url credentials:"+url);
+            status.setCertStatus("Success");
         }
         return url;
     }
-
-
 
     private String generateImageURL(JsonNode rootNode) {
         JsonNode rollNumber = rootNode.get("rollNumber");
