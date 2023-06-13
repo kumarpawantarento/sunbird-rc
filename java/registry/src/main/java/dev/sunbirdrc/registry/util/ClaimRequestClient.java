@@ -73,9 +73,9 @@ public class ClaimRequestClient {
         // Make the POST request to the service
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(serviceUrl, requestEntity, String.class);
-
-        logger.info("Save to GCS successfully ...");
-        return response.toString();
+        String url = response.getBody();
+        logger.info("Save to GCS successfully ..."+url);
+        return url;
     }
 
     public BarCode getBarCode(BarCode barCode) {

@@ -60,7 +60,7 @@ public class GCPBucketUtil {
             Bucket bucket = storage.get(gcpBucketId,Storage.BucketGetOption.fields());
 
             RandomString id = new RandomString();
-            Blob blob = bucket.create(gcpDirectoryName + "//" + fileName, fileData, contentType);
+            Blob blob = bucket.create(gcpDirectoryName + "/" + fileName, fileData, contentType);
 
             URL url =  blob.signUrl(2, TimeUnit.HOURS,Storage.SignUrlOption.withV4Signature());
             String fileUrl = url.toString();
