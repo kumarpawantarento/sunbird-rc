@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "Student": {
+      "$ref": "#/definitions/Student"
+    }
+  },
+  "required": ["Student"],
+  "title": "Student",
+  "definitions": {
+    "Student": {
+      "$id": "#/properties/Student",
+      "type": "object",
+      "title": "Student schema",
+      "required": ["name", "course", "email", "StudentKey", "centerKey", "address", "rollNo", "dob"],
+      "properties": {
+        "name": { "type": "string" },
+        "father-name": { "type": "string" },
+        "mother-name": { "type": "string" },
+        "course": { "type": "string" },
+        "email": { "type": "string" },
+        "username": { "type": "string" },
+        "StudentKey": { "type": "string" },
+        "centerKey": { "type": "string" },
+        "address": { "type": "string" },
+        "rollNo": { "type": "string" },
+        "dob": { "type": "string" },
+        "institute": {"type": "string", "title": "Institute Full Name"}
+      }
+    }
+  },
+  "_osConfig": {
+    "systemFields": [
+      "osCreatedAt",
+      "osUpdatedAt",
+      "osCreatedBy",
+      "osUpdatedBy",
+      "osAttestedData",
+      "osClaimId",
+      "osState"
+    ],
+    "attestationAttributes": [
+      "Institute"
+    ],
+    "attestationPolicies": [
+      {
+        "name": "Institute",
+        "additionalInput": {
+          "rollNo": {"type": "string"}
+        },
+        "attestationProperties": {
+          "name": "$.name",
+          "institute": "$.institute"
+        },
+        "paths": ["$.identityDetails[?(@.osid == 'PROPERTY_ID')]['institute', 'course']", "$.Student['name']"],
+        "type": "MANUAL",
+        "attestorEntity": "Regulator",
+        "conditions": "(ATTESTOR#$.institute#.contains(REQUESTER#$.institute#))",
+        "attestorPlugin": "did:internal:ClaimPluginActor?entity=Regulator",
+        "credentialTemplate": {}
+      }
+    ],
+    "ownershipAttributes": [
+      {
+        "email": "/email",
+        "mobile": "/mobile"
+      }
+    ],
+    "inviteRoles": ["anonymous"],
+    "roles": ["anonymous"]
+  }
+}
