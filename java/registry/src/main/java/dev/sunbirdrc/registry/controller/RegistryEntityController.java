@@ -46,11 +46,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 
 import static dev.sunbirdrc.registry.Constants.*;
@@ -60,6 +59,7 @@ import static dev.sunbirdrc.registry.middleware.util.Constants.*;
 public class RegistryEntityController extends AbstractController {
 
     private static final String TRANSACTION_ID = "transactionId";
+
     private static Logger logger = LoggerFactory.getLogger(RegistryEntityController.class);
 
     @Autowired
@@ -274,6 +274,105 @@ public class RegistryEntityController extends AbstractController {
             String emailId = registryHelper.fetchEmailIdFromToken(request, entityName);
             Map<String, String> resultMap = new HashMap<>();
             if (asyncRequest.isEnabled()) {
+                resultMap.put(TRANSACTION_ID, label);
+            } else {
+                registryHelper.autoRaiseClaim(entityName, label, userId, null, newRootNode, emailId);
+                resultMap.put(dbConnectionInfoMgr.getUuidPropertyName(), label);
+            }
+            result.put(entityName, resultMap);
+            response.setResult(result);
+            responseParams.setStatus(Response.Status.SUCCESSFUL);
+            watch.stop("RegistryController.addToExistingEntity");
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (MiddlewareHaltException e) {
+            logger.info("Error in validating the request");
+            return badRequestException(responseParams, response, e.getMessage());
+        } catch (Exception e) {
+            logger.error("Exception in controller while adding entity !", e);
+            response.setResult(result);
+            responseParams.setStatus(Response.Status.UNSUCCESSFUL);
+            responseParams.setErrmsg(e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @RequestMapping(value = "/api/v3/{entityName}", method = RequestMethod.POST)
+    public List<Map<Boolean, List<CompletableFuture<Object>>>> postBulkEntity(
+            @PathVariable String entityName,
+            @RequestHeader HttpHeaders header,
+            @RequestBody JsonNode[] rootNodes,
+            @RequestParam(defaultValue = "sync") String mode,
+            @RequestParam(defaultValue = "${webhook.url}") String callbackUrl,
+            HttpServletRequest request
+    ) {
+        logger.info("MODE: {}", asyncRequest.isEnabled());
+        logger.info("MODE: {}", asyncRequest.getWebhookUrl());
+        List<CompletableFuture<Object>> completableFutures = new ArrayList<>();
+        ExecutorService executer = Executors.newFixedThreadPool(5);
+        Map<Boolean, List<CompletableFuture<Object>>> result = null;
+        if(rootNodes != null)
+        {
+            for (JsonNode node :rootNodes) {
+                CompletableFuture<Object> requestCompletableFuture = CompletableFuture
+                        .supplyAsync(
+                                () ->   getObjectResponseEntity(entityName, node, request)
+                        );
+
+                completableFutures.add(requestCompletableFuture);
+            }
+
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                    // avoid throwing an exception in the join() call
+                    .exceptionally(ex -> null)
+                    .join();
+            result = completableFutures.stream()
+                            .collect(Collectors.partitioningBy(CompletableFuture::isCompletedExceptionally));
+        }
+
+        List<Map<Boolean, List<CompletableFuture<Object>>>> objectResponseEntityList = new ArrayList<>();
+        objectResponseEntityList.add(result);
+        return objectResponseEntityList;
+    }
+    @RequestMapping(value = "/api/v2/{entityName}", method = RequestMethod.POST)
+    public List<ResponseEntity<Object>> postBulkEntitySynch(
+            @PathVariable String entityName,
+            @RequestHeader HttpHeaders header,
+            @RequestBody JsonNode[] rootNodes,
+            @RequestParam(defaultValue = "sync") String mode,
+            @RequestParam(defaultValue = "${webhook.url}") String callbackUrl,
+            HttpServletRequest request
+    ) {
+        logger.info("MODE: {}", asyncRequest.isEnabled());
+        logger.info("MODE: {}", asyncRequest.getWebhookUrl());
+        List<ResponseEntity<Object>> objectResponseEntityList = new ArrayList<>();
+        for (JsonNode node :rootNodes) {
+            ResponseEntity<Object> objectResponseEntity = getObjectResponseEntity(entityName, node, request);
+            objectResponseEntityList.add(objectResponseEntity);
+        }
+
+        return objectResponseEntityList;
+    }
+
+    private ResponseEntity<Object> getObjectResponseEntity(String entityName, JsonNode rootNode, HttpServletRequest request) {
+
+        logger.info("Adding entity {}", rootNode);
+        // adding imageUrl
+        extractImgUrl(rootNode);
+        // adding barCode
+        extractBarCode(rootNode);
+        ResponseParams responseParams = new ResponseParams();
+        Response response = new Response(Response.API_ID.CREATE, "OK", responseParams);
+        Map<String, Object> result = new HashMap<>();
+        ObjectNode newRootNode = objectMapper.createObjectNode();
+        newRootNode.set(entityName, rootNode);
+
+        try {
+            String userId = registryHelper.authorizeManageEntity(request, entityName);
+            String label = registryHelper.addEntity(newRootNode, userId);
+            String emailId = registryHelper.fetchEmailIdFromToken(request, entityName);
+            Map<String, String> resultMap = new HashMap<>();
+            if (!asyncRequest.isEnabled()) {
                 resultMap.put(TRANSACTION_ID, label);
             } else {
                 registryHelper.autoRaiseClaim(entityName, label, userId, null, newRootNode, emailId);
@@ -544,15 +643,16 @@ public class RegistryEntityController extends AbstractController {
                     JSONUtil.removeNodesByPath(node, definitionsManager.getExcludingFieldsForEntity(entityName))
             );
 
-            String url = null;
-            try {
-                url = getCertificate(entityId, status, certificate);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            String url = getCredUrl(entityId, status, certificate);
+            if(url != null){
+                status.setCertStatus("Success");
+                shareCredentials(node, status, url);
             }
-            shareCredentials(node, status, url);
+            else{
+                status.setCertStatus("Failed");
+            }
 
-            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Certificate status::" + status.getCertStatus() + "::Mail Status::" + status.getMailStatus(), HttpStatus.OK);
+            ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Credentials status::" + status.getCertStatus() + "::Mail Status::" + status.getMailStatus(), HttpStatus.OK);
 
             return objectResponseEntity;
         } catch (Exception exception) {
@@ -560,6 +660,17 @@ public class RegistryEntityController extends AbstractController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @Nullable
+    private String getCredUrl(final String entityId, Status status, Object certificate) throws Exception {
+        String url = null;
+        try {
+            url = getCertificate(entityId, status, certificate);
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+        return url;
     }
 
     private void shareCredentials(JsonNode node, Status status, String url) {
@@ -592,33 +703,15 @@ public class RegistryEntityController extends AbstractController {
 
     private String getCertificate(String entityId, Status status, Object certificate) throws Exception {
         String url = null;
-
         if (certificate != null) {
 
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                try (ObjectOutputStream objOutStream = new ObjectOutputStream(bos)) {
-                        objOutStream.writeObject(certificate);
-                        objOutStream.flush();
-                        byte[] bytes = bos.toByteArray();
-                        // prepare object name
-                        String fileName = entityId + ".PDF";
-                        logger.info(fileName);
-                        url = certificateService.saveToGCS(bytes, fileName);
-                        logger.info(url);
-                        status.setCertUrl(url);
-                        status.setCertStatus("Success");
-                }
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                status.setCertStatus("Failed");
-                throw new Exception("Problem in certificate URL generation", e);
-            }
-
+            logger.info("Credentials generation for EntityId:"+entityId);
+            url = certificateService.saveToGCS(certificate, entityId);
+            logger.debug("Final url credentials:"+url);
+            status.setCertStatus("Success");
         }
         return url;
     }
-
-
 
     private String generateImageURL(JsonNode rootNode) {
         JsonNode rollNumber = rootNode.get("rollNumber");
