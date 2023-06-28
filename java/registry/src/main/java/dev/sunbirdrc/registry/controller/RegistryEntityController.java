@@ -48,6 +48,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 
 import static dev.sunbirdrc.registry.Constants.*;
@@ -272,6 +274,105 @@ public class RegistryEntityController extends AbstractController {
             String emailId = registryHelper.fetchEmailIdFromToken(request, entityName);
             Map<String, String> resultMap = new HashMap<>();
             if (asyncRequest.isEnabled()) {
+                resultMap.put(TRANSACTION_ID, label);
+            } else {
+                registryHelper.autoRaiseClaim(entityName, label, userId, null, newRootNode, emailId);
+                resultMap.put(dbConnectionInfoMgr.getUuidPropertyName(), label);
+            }
+            result.put(entityName, resultMap);
+            response.setResult(result);
+            responseParams.setStatus(Response.Status.SUCCESSFUL);
+            watch.stop("RegistryController.addToExistingEntity");
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (MiddlewareHaltException e) {
+            logger.info("Error in validating the request");
+            return badRequestException(responseParams, response, e.getMessage());
+        } catch (Exception e) {
+            logger.error("Exception in controller while adding entity !", e);
+            response.setResult(result);
+            responseParams.setStatus(Response.Status.UNSUCCESSFUL);
+            responseParams.setErrmsg(e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @RequestMapping(value = "/api/v3/{entityName}", method = RequestMethod.POST)
+    public List<Map<Boolean, List<CompletableFuture<Object>>>> postBulkEntity(
+            @PathVariable String entityName,
+            @RequestHeader HttpHeaders header,
+            @RequestBody JsonNode[] rootNodes,
+            @RequestParam(defaultValue = "sync") String mode,
+            @RequestParam(defaultValue = "${webhook.url}") String callbackUrl,
+            HttpServletRequest request
+    ) {
+        logger.info("MODE: {}", asyncRequest.isEnabled());
+        logger.info("MODE: {}", asyncRequest.getWebhookUrl());
+        List<CompletableFuture<Object>> completableFutures = new ArrayList<>();
+        ExecutorService executer = Executors.newFixedThreadPool(5);
+        Map<Boolean, List<CompletableFuture<Object>>> result = null;
+        if(rootNodes != null)
+        {
+            for (JsonNode node :rootNodes) {
+                CompletableFuture<Object> requestCompletableFuture = CompletableFuture
+                        .supplyAsync(
+                                () ->   getObjectResponseEntity(entityName, node, request)
+                        );
+
+                completableFutures.add(requestCompletableFuture);
+            }
+
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                    // avoid throwing an exception in the join() call
+                    .exceptionally(ex -> null)
+                    .join();
+            result = completableFutures.stream()
+                            .collect(Collectors.partitioningBy(CompletableFuture::isCompletedExceptionally));
+        }
+
+        List<Map<Boolean, List<CompletableFuture<Object>>>> objectResponseEntityList = new ArrayList<>();
+        objectResponseEntityList.add(result);
+        return objectResponseEntityList;
+    }
+    @RequestMapping(value = "/api/v2/{entityName}", method = RequestMethod.POST)
+    public List<ResponseEntity<Object>> postBulkEntitySynch(
+            @PathVariable String entityName,
+            @RequestHeader HttpHeaders header,
+            @RequestBody JsonNode[] rootNodes,
+            @RequestParam(defaultValue = "sync") String mode,
+            @RequestParam(defaultValue = "${webhook.url}") String callbackUrl,
+            HttpServletRequest request
+    ) {
+        logger.info("MODE: {}", asyncRequest.isEnabled());
+        logger.info("MODE: {}", asyncRequest.getWebhookUrl());
+        List<ResponseEntity<Object>> objectResponseEntityList = new ArrayList<>();
+        for (JsonNode node :rootNodes) {
+            ResponseEntity<Object> objectResponseEntity = getObjectResponseEntity(entityName, node, request);
+            objectResponseEntityList.add(objectResponseEntity);
+        }
+
+        return objectResponseEntityList;
+    }
+
+    private ResponseEntity<Object> getObjectResponseEntity(String entityName, JsonNode rootNode, HttpServletRequest request) {
+
+        logger.info("Adding entity {}", rootNode);
+        // adding imageUrl
+        extractImgUrl(rootNode);
+        // adding barCode
+        extractBarCode(rootNode);
+        ResponseParams responseParams = new ResponseParams();
+        Response response = new Response(Response.API_ID.CREATE, "OK", responseParams);
+        Map<String, Object> result = new HashMap<>();
+        ObjectNode newRootNode = objectMapper.createObjectNode();
+        newRootNode.set(entityName, rootNode);
+
+        try {
+            String userId = registryHelper.authorizeManageEntity(request, entityName);
+            String label = registryHelper.addEntity(newRootNode, userId);
+            String emailId = registryHelper.fetchEmailIdFromToken(request, entityName);
+            Map<String, String> resultMap = new HashMap<>();
+            if (!asyncRequest.isEnabled()) {
                 resultMap.put(TRANSACTION_ID, label);
             } else {
                 registryHelper.autoRaiseClaim(entityName, label, userId, null, newRootNode, emailId);

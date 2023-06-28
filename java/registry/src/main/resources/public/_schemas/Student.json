@@ -12,14 +12,10 @@
     "Student": {
       "$id": "#/properties/Student",
       "type": "object",
-      "title": "Student schema",
+      "title": "Student",
       "required": ["StudentName","email","userId","mobile", "RollNo", "DateOfBirth"],
       "properties": {
         "Username": {
-          "type": "string",
-          "description": ""
-        },
-        "userName": {
           "type": "string",
           "description": ""
         },
@@ -334,6 +330,7 @@
       }
     }
   },
+
   "_osConfig": {
     "systemFields": [
       "osCreatedAt",
@@ -344,25 +341,23 @@
       "osClaimId",
       "osState"
     ],
+    "indexFields": ["StudentName", "RollNo"],
+    "uniqueIndexFields": ["RollNo","EnrollmentNo"],
+
     "attestationAttributes": [
-      "Institute"
+      "IsActive"
     ],
     "attestationPolicies": [
       {
-        "name": "Institute",
+        "name": "studentRegulatorAttest",
         "additionalInput": {
-          "RollNo": {"type": "string"}
+          "rollNumber": {"type": "string"}
         },
         "attestationProperties": {
-          "name": "$.name",
-          "institute": "$.institute"
+          "IsActive": "$.IsActive"
         },
-        "paths": ["$.identityDetails[?(@.osid == 'PROPERTY_ID')]['institute', 'course']", "$.Student['StudentName']"],
         "type": "MANUAL",
-        "attestorEntity": "Regulator",
-        "conditions": "(ATTESTOR#$.institute#.contains(REQUESTER#$.institute#))",
-        "attestorPlugin": "did:internal:ClaimPluginActor?entity=Regulator",
-        "credentialTemplate": {}
+        "attestorPlugin": "did:internal:ClaimPluginActor?entity=Regulator"
       }
     ],
     "ownershipAttributes": [
@@ -371,7 +366,8 @@
         "mobile": "/mobile"
       }
     ],
-    "inviteRoles": ["anonymous"],
-    "roles": ["anonymous"]
+    "inviteRoles": ["Regulator"],
+    "roles": ["Regulator"],
+    "enableLogin": true
   }
 }
