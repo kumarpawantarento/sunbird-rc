@@ -149,8 +149,8 @@ database:
       uri: ${connectionInfo_uri:jdbc:postgresql://localhost:5432/registry}
 
       username: ${connectionInfo_username:postgres}
-      #password: ${connectionInfo_password:yoursupersecret}
-      password: ${connectionInfo_password:postgres}
+      password: ${connectionInfo_password:yoursupersecret}
+      #password: ${connectionInfo_password:postgres}
       maxPoolSize: ${connectionInfo_maxPoolSize:200}
 
       # Any other shard information follows...
@@ -230,7 +230,7 @@ keycloak:
   resource: ${sunbird_sso_client_id:registry-frontend}
 keycloak-admin:
   client-id: ${sunbird_sso_admin_client_id:admin-api}
-  client-secret: ${sunbird_sso_admin_client_secret:a5517fd3-e088-435b-adff-9c94af3601f7}
+  client-secret: ${sunbird_sso_admin_client_secret:e5654e31-27e5-450e-9a7b-22154972b6a6}
 keycloak-user:
   set-default-password: ${sunbird_keycloak_user_set_password:true}
   default-password: ${sunbird_keycloak_user_password:admin}
@@ -242,7 +242,7 @@ claims:
   url: ${claims_url:http://localhost:8082}
 authentication:
   enabled: ${authentication_enabled:true}
-  publicKey:  ${authentication_publickey:MIICozCCAYsCBgGIfCDhgTANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDApzdW5iaXJkLXJjMB4XDTIzMDYwMjEyNDAwOVoXDTMzMDYwMjEyNDE0OVowFTETMBEGA1UEAwwKc3VuYmlyZC1yYzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJyxOOpX/8qzYl1GoMCqJo0dPVSQKFs7FifIzIgU72Pb5REM2Agw0P5UzyE6CwyOVJgcfdYGlQNJQXjbkaQwE5SNb5iiliji5ejqfw7hbk+WfJ/qNXo6VeIoEra72+JEivSnAFk2ox7K4BXFJ89ndHdhAcSZy4GJU3kzqT1BNcAe1Hhir9rZB+QOV6CaZZ3h1qlknEvLG/Jfh7f79g+oQGAtnicF1frBQ9GqXHJRPBi0HrPmItQj0WZwSjJdxGpSrK0W3+/CYCyIRyZQuXgDcl76lDwVNdCPYamxQeJ764wIv8DBbo2rAC5mb3YlfwU2+5zbCQafehRs1Q5JmuDFTrsCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAjh4kYjlLheFCi/wz5XGFS+7w4y2QAD/tM/S6VsOYGpNtNLG/qFPRf6fYn/zPmdyugNAL8KhWTBwknJwfoQlbCAQSqBDRGbwA3cUb7CIg0vRjkUq3s7IDB8pk+fN65lUqj/J7bC19GXd7sjC+zWcpYhBIMkFEdx/ylZgdbJkdXWTvcmUaX0Q2FLUBBYbEpz6fzRysiSX7MelzafLP0PJ+0HOwU7PRieE6qkXoj6znRNfpt6duRtdz3Tj8uCfJGL5V+q+iZeZmtNJXrVfGuhGBDStJOQiehTfV1oadpg5cI7EXvEVa6oGFyTufgBjsoRWVtfFzk2cNY8EVPA6mEHV7BA==}
+  publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApBm7dcA0Q/xmZVhn2mp9rmTeTleleIlDrY5w5JG5PaL9gzSd7Wj0wfnET7GBpmlpVkN/HewgZloRMMlTih81kV/RQbjLwNV0lMjXL8oIZFySGuUsdPgjwHqNbcjIUht31kYDJO+aVVbPwu9kCSvyFhzUUmG5/WfaDjjSu3daEVZlgnzsZOxYIGzvE02mkZPH78mK2Xe1H97jFsVhdoeMsu+cV0e3Aa288xR+Yqp+kqnP8d2vVmf3ZsshBzuUeWP/Xy+O29Luedxg2K6B2DekDMppfmlF1vKrNLpHAl8Zn720eMSY5tUqPxVTt7iheXeWYmrcN2sN18/7qvkaD+dkOwIDAQAB}
   realm:  ${authentication_realm:sunbird-rc}
   url:  ${authentication_url:localhost:8080/auth}
 
@@ -305,7 +305,7 @@ elastic:
     #if authentication is enabled
     auth_enabled: ${elastic_search_auth_enabled:false}
     elastic_username: ${elastic_search_username:elastic}
-    elastic_password: ${elastic_search_password:}
+    elastic_password: ${elastic_search_password:elastic}
 filestorage:
   url: ${filestorage_connection_url:http://localhost:9000}
   accesskey: ${filestorage_access_key:admin}
