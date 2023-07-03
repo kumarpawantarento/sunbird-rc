@@ -42,9 +42,9 @@ perf:
 registry:
   perRequest:
     indexCreation:
-      enabled: ${registry_perRequest_indexCreation_enabled:false}
+      enabled: ${registry_perRequest_indexCreation_enabled:true}
   baseAPIS:
-    enable: ${registry_base_apis_enable:false}
+    enable: ${registry_base_apis_enable:true}
   externalentities: ${external_entities:}
   context:
     base: ${registry_context_base:http://localhost:8081/}
@@ -55,7 +55,7 @@ registry:
   schema:
     url: ${registry_schema_url:http://localhost:8081/public/_schemas/}
   attestationPolicy:
-    createAccess: ${create_attestation_access_entities:User}
+    createAccess: ${create_attestation_access_entities:Regulator}
   manager:
     type: ${manager_type:DefinitionsManager}
   redis:
@@ -70,12 +70,12 @@ workflow:
   enabled: ${workflow.enable:false}
 
 async:
-  enabled: ${async_enabled:false}
+  enabled: ${async_enabled:true}
 
 kafka:
-  bootstrapAddress: ${kafka_bootstrap_address:kafka:9092}
-  createEntityTopic: ${kafka_create_entity_topic:create_entity}
-  postCreateEntityTopic: ${kafka_post_create_entity_topic:post_create_entity}
+  bootstrapAddress: ${kafka_bootstrap_address:localhost:9092}
+  createEntityTopic: ${kafka_create_entity_topic:createentity}
+  postCreateEntityTopic: ${kafka_post_create_entity_topic:postcreateentity}
 
 webhook:
   enabled: ${webhook_enabled:false}
@@ -95,13 +95,13 @@ search:
   #   If NativeSearchService, then every search API uses the same database as the writes. May
   # not offer high speed reads. This is the default search service, if this config is not provided.
   #   If ElasticSearchService, then Elastic search is used.
-  expandInternal: ${search_expandInternal:true}
-  providerName: ${search_providerName:dev.sunbirdrc.registry.service.NativeSearchService}
+  expandInternal: ${search_expandInternal:false}
+  providerName: ${search_providerName:dev.sunbirdrc.registry.service.ElasticSearchService}
 
 # This property is to be used for read request
 read:
   # The read mechanism to use, values could be either NativeReadService or ElasticReadService
-  providerName: dev.sunbirdrc.registry.service.NativeReadService
+  providerName: dev.sunbirdrc.registry.service.ElasticReadService
 
 database:
   # This property is internal and not to be confused with the schema definition.
@@ -233,18 +233,18 @@ keycloak-admin:
   client-secret: ${sunbird_sso_admin_client_secret:e5654e31-27e5-450e-9a7b-22154972b6a6}
 keycloak-user:
   set-default-password: ${sunbird_keycloak_user_set_password:true}
-  default-password: ${sunbird_keycloak_user_password:admin@admin}
+  default-password: ${sunbird_keycloak_user_password:admin}
   # email actions which will be trigger by keycloak
   # example email actions: VERIFY_EMAIL, UPDATE_PROFILE, UPDATE_PASSWORD, TERMS_AND_CONDITIONS etc.
   # email details should be configured in keycloak realm settings
-  email-actions: ${keycloack_user_email_actions:}
+  email-actions: ${keycloack_user_email_actions:VERIFY_EMAIL}
 claims:
   url: ${claims_url:http://localhost:8082}
 authentication:
-  enabled: ${authentication_enabled:false}
+  enabled: ${authentication_enabled:true}
   publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApBm7dcA0Q/xmZVhn2mp9rmTeTleleIlDrY5w5JG5PaL9gzSd7Wj0wfnET7GBpmlpVkN/HewgZloRMMlTih81kV/RQbjLwNV0lMjXL8oIZFySGuUsdPgjwHqNbcjIUht31kYDJO+aVVbPwu9kCSvyFhzUUmG5/WfaDjjSu3daEVZlgnzsZOxYIGzvE02mkZPH78mK2Xe1H97jFsVhdoeMsu+cV0e3Aa288xR+Yqp+kqnP8d2vVmf3ZsshBzuUeWP/Xy+O29Luedxg2K6B2DekDMppfmlF1vKrNLpHAl8Zn720eMSY5tUqPxVTt7iheXeWYmrcN2sN18/7qvkaD+dkOwIDAQAB}
   realm:  ${authentication_realm:sunbird-rc}
-  url:  ${authentication_url:localhost:8443/auth}
+  url:  ${authentication_url:localhost:8080/auth}
 
 
 validation:
@@ -298,7 +298,7 @@ auditTaskExecutor:
 elastic:
   search:
     # elastic-search can be enable and disable through this flag
-    enabled: ${elastic_search_enabled:false}
+    enabled: ${elastic_search_enabled:true}
     # elastic-search connection info
     connection_url: ${elastic_search_connection_url:localhost:9200}
     add_shard_prefix: ${elastic_search_add_shard_prefix:true}

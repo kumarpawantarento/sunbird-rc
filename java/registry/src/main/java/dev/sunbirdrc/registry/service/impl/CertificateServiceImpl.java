@@ -1,6 +1,9 @@
 package dev.sunbirdrc.registry.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import dev.sunbirdrc.pojos.ComponentHealthInfo;
 import dev.sunbirdrc.registry.middleware.util.Constants;
 import dev.sunbirdrc.registry.model.dto.BarCode;
@@ -8,6 +11,8 @@ import dev.sunbirdrc.registry.model.dto.MailDto;
 import dev.sunbirdrc.registry.service.ICertificateService;
 import dev.sunbirdrc.registry.util.ClaimRequestClient;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +24,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,9 +62,22 @@ public class CertificateServiceImpl implements ICertificateService {
         try {
             String finalTemplateUrl = inferTemplateUrl(entityName, mediaType, templateUrl);
             logger.info("Org LOGO"+String.valueOf(entity.get("orgLogo")));
+            ObjectNode objNode = (ObjectNode)certificateData.get("credentialSubject");
+
+
+            if(objNode != null) {
+                TextNode node = (TextNode)objNode.get("compositeData");
+                ObjectMapper obj = new ObjectMapper();
+                String value1 = node.toString();
+                Document document = Jsoup.parse(value1);
+                //objNode.put("compositeData",document.toString());
+                //logger.info(document.toString());
+                //JsonNode n1 = JsonNodeFactory.instance();
+            }
             Map<String, Object> requestBody = new HashMap<String, Object>(){{
                 put("templateUrl", finalTemplateUrl);
-                put("certificate", certificateData.toString());
+                String value = certificateData.toString();
+                put("certificate", value);
                 put("entityId", entityId);
                 put("entityName", entityName);
                 put("entity", entity);

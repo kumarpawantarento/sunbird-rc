@@ -1,0 +1,158 @@
+{
+ "$schema": "http://json-schema.org/draft-07/schema",
+ "type": "object",
+ "properties": {
+   "StudentMarksSheet": {
+     "$ref": "#/definitions/StudentMarksSheet"
+   }
+ },
+ "required": [
+   "StudentMarksSheet"
+ ],
+ "title": "StudentMarksSheet",
+ "definitions": {
+   "StudentMarksSheet": {
+     "$id": "#/properties/StudentMarksSheet",
+     "type": "object",
+     "title": "StudentMarksSheet",
+     "required": ["name", "rollNumber"],
+
+     "properties": {
+       "name": {
+         "type": "string"
+       },
+       "father": {
+         "type": "string"
+       },
+       "mother": {
+         "type": "string"
+       },
+       "rollNumber": {
+         "type": "string"
+       },
+       "regNumber": {
+         "type": "string"
+       },
+       "course": {
+         "type": "string"
+       },
+       "trainingCenter": {
+         "type": "string"
+       },
+       "trainingPeriod": {
+         "type": "string"
+       },
+       "examBody": {
+         "type": "string"
+       },
+       "examYear": {
+         "type": "string"
+       },
+       "examMonth": {
+         "type": "string"
+       },
+       "enrollNo": {
+         "type": "string"
+       },
+       "orgLogo": {
+         "type": "string"
+       },
+       "barcode": {
+         "type": "string"
+       },
+       "candidatePic": {
+         "type": "string"
+       },
+       "signaturePic": {
+         "type": "string"
+       },
+       "trainingCenterCode": {
+         "type": "string"
+       },
+       "dated": {
+         "type": "string"
+       },
+       "trainingTitle": {
+         "type": "string"
+       },
+       "trainingCode": {
+         "type": "string"
+       },
+       "credType": {
+         "type": "string"
+       },
+       "compositeData": {
+         "type": "string"
+       },
+       "yearsOfTheCourse": {
+         "type": "array",
+         "items": {
+           "courseYear": { "type": "string"},
+           "examYear": { "type": "string"},
+           "examMonth": { "type": "string"},
+           "result": { "type": "string"},
+           "totalMarksObtained": { "type": "string"},
+           "totalMarksObtainedInWord": { "type": "string"},
+           "maxTotal": { "type": "string"},
+           "total":  { "type": "string"},
+           "subject": {
+             "type": "array",
+             "items": {
+               "Subject": {
+                 "type": "object",
+                 "properties": {
+                   "name": {"type": "string"},
+                   "max-ext": {"type": "string"},
+                   "max-int": {"type": "string"},
+                   "obt-ext": {"type": "string"},
+                   "total":  { "type": "string"},
+                   "obt-int": {"type": "string"}
+                 }
+               }
+             }
+           }
+         }
+       }
+     }
+   }
+ },
+ 
+ "_osConfig": {
+   "uniqueIndexFields": [],
+   "ownershipAttributes": [],
+   "roles": ["Regulator"],
+   "inviteRoles": ["Regulator"],
+   "enableLogin": true,
+   "credentialTemplate": {
+     "@context": [
+       "https://www.w3.org/2018/credentials/v1",
+       "https://raw.githubusercontent.com/kumarpawantarento/templates/main/registration"
+     ],
+     "type": [
+       "VerifiableCredential"
+     ],
+     "issuanceDate": "2021-08-27T10:57:57.237Z",
+     "credentialSubject": {
+       "type": "Person",
+       "name": "{{name}}",
+       "mother": "{{mother}}",
+       "father": "{{father}}",
+       "examYear": "{{examYear}}",
+       "examMonth": "{{examMonth}}",
+       "orgLogo": "{{orgLogo}}",
+       "address": "{{address}}",
+       "trainningCenter": "{{trainingCenter}}",
+       "trainningCenterCode": "{{trainingCenterCode}}",
+       "dated": "{{dated}}",
+       "trainingTitle": "{{trainingTitle}}",
+       "trainingCode": "{{trainingCode}}",
+       "credType": "{{credType}}",
+       "barCode": "{{barCode}}",
+       "rollNumber": "{{rollNumber}}",
+       "yearsOfTheCourse": "{{yearsOfTheCourse}}",
+       "compositeData": "{{compositeData}}"
+     },
+     "issuer": "did:web:sunbirdrc.dev/vc/skill"
+   }
+ }
+}
