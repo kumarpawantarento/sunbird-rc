@@ -29,10 +29,12 @@ import dev.sunbirdrc.registry.service.impl.CertificateServiceImpl;
 import dev.sunbirdrc.registry.transform.Configuration;
 import dev.sunbirdrc.registry.transform.Data;
 import dev.sunbirdrc.registry.transform.ITransformer;
+import dev.sunbirdrc.registry.util.StudentMarksTable;
 import dev.sunbirdrc.validators.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.slf4j.Logger;
@@ -262,6 +264,7 @@ public class RegistryEntityController extends AbstractController {
         extractImgUrl(rootNode);
         // adding barCode
         extractBarCode(rootNode);
+        extractCompositeDate(rootNode);
         ResponseParams responseParams = new ResponseParams();
         Response response = new Response(Response.API_ID.CREATE, "OK", responseParams);
         Map<String, Object> result = new HashMap<>();
@@ -309,7 +312,7 @@ public class RegistryEntityController extends AbstractController {
         logger.info("MODE: {}", asyncRequest.isEnabled());
         logger.info("MODE: {}", asyncRequest.getWebhookUrl());
         List<CompletableFuture<Object>> completableFutures = new ArrayList<>();
-        ExecutorService executer = Executors.newFixedThreadPool(5);
+
         Map<Boolean, List<CompletableFuture<Object>>> result = null;
         if(rootNodes != null)
         {
@@ -408,7 +411,19 @@ public class RegistryEntityController extends AbstractController {
             BarCode barCodeNode = certificateService.getBarCode(code);
             ObjectNode objNode = (ObjectNode) rootNode;
             objNode.put("barCode", barCodeNode.getBarCodeValue());
-            logger.info("BarCodeValue::" + barCodeNode.getBarCodeValue());
+            logger.debug("BarCodeValue::" + barCodeNode.getBarCodeValue());
+        }
+    }
+
+    private void extractCompositeDate(JsonNode rootNode) {
+        JsonNode node = rootNode.get("yearsOfTheCourse");
+        if(node != null){
+            ObjectNode objNode = (ObjectNode) rootNode;
+            //JSONArray array = (JSONArray)rootNode.get("yearsOfTheCourse");
+            JSONArray jsonArray = new JSONArray(node.toString());
+            String tableData = StudentMarksTable.getTableFromJson(jsonArray);
+            objNode.put("compositeData", tableData);
+            logger.info("yearsOfTheCourse::" + node);
         }
     }
 

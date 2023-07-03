@@ -94,16 +94,18 @@
            "totalMarksObtained": { "type": "string"},
            "totalMarksObtainedInWord": { "type": "string"},
            "maxTotal": { "type": "string"},
-           "subjects": {
+           "total":  { "type": "string"},
+           "subject": {
              "type": "array",
              "items": {
                "Subject": {
                  "type": "object",
                  "properties": {
-                   "subject": {"type": "string"},
+                   "name": {"type": "string"},
                    "max-ext": {"type": "string"},
                    "max-int": {"type": "string"},
                    "obt-ext": {"type": "string"},
+                   "total":  { "type": "string"},
                    "obt-int": {"type": "string"}
                  }
                }
@@ -146,6 +148,7 @@
        "trainingCode": "{{trainingCode}}",
        "credType": "{{credType}}",
        "barCode": "{{barCode}}",
+       "rollNumber": "{{rollNumber}}",
        "yearsOfTheCourse": "{{yearsOfTheCourse}}",
        "compositeData": "{{compositeData}}"
      },
