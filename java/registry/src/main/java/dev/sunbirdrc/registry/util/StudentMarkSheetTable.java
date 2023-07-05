@@ -6,7 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-public class StudentMarksTable {
+public class StudentMarkSheetTable {
 
     public static String getTableFromJson(JSONArray jsonArray) {
         Document doc = Jsoup.parse(""); // Create an empty HTML document

@@ -58,22 +58,11 @@ public class CertificateServiceImpl implements ICertificateService {
     }
 
     @Override
-    public Object getCertificate(JsonNode certificateData, String entityName, String entityId, String mediaType, String templateUrl, JsonNode entity) {
+    public Object getCertificate(JsonNode certificateData, String entityName, String entityId, String mediaType, String templateUrl, JsonNode entity, String fileName) {
         try {
             String finalTemplateUrl = inferTemplateUrl(entityName, mediaType, templateUrl);
             logger.info("Org LOGO"+String.valueOf(entity.get("orgLogo")));
-            ObjectNode objNode = (ObjectNode)certificateData.get("credentialSubject");
 
-
-            if(objNode != null) {
-                TextNode node = (TextNode)objNode.get("compositeData");
-                ObjectMapper obj = new ObjectMapper();
-                String value1 = node.toString();
-                Document document = Jsoup.parse(value1);
-                //objNode.put("compositeData",document.toString());
-                //logger.info(document.toString());
-                //JsonNode n1 = JsonNodeFactory.instance();
-            }
             Map<String, Object> requestBody = new HashMap<String, Object>(){{
                 put("templateUrl", finalTemplateUrl);
                 String value = certificateData.toString();
@@ -81,6 +70,7 @@ public class CertificateServiceImpl implements ICertificateService {
                 put("entityId", entityId);
                 put("entityName", entityName);
                 put("entity", entity);
+                put("credentialsFileName",fileName);
             }};
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", mediaType);
