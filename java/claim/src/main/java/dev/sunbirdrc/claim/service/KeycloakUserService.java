@@ -202,6 +202,7 @@ public class KeycloakUserService {
      * @param userId
      */
     public void deleteUser(String userId){
+        // TO_DO disable user
         UsersResource usersResource = getSystemUsersResource();
         usersResource.get(userId).remove();
     }

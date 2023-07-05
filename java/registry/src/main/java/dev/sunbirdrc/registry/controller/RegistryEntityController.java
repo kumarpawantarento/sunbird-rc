@@ -29,7 +29,7 @@ import dev.sunbirdrc.registry.service.impl.CertificateServiceImpl;
 import dev.sunbirdrc.registry.transform.Configuration;
 import dev.sunbirdrc.registry.transform.Data;
 import dev.sunbirdrc.registry.transform.ITransformer;
-import dev.sunbirdrc.registry.util.StudentMarksTable;
+import dev.sunbirdrc.registry.util.StudentMarkSheetTable;
 import dev.sunbirdrc.validators.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -419,11 +419,12 @@ public class RegistryEntityController extends AbstractController {
         JsonNode node = rootNode.get("yearsOfTheCourse");
         if(node != null){
             ObjectNode objNode = (ObjectNode) rootNode;
-            //JSONArray array = (JSONArray)rootNode.get("yearsOfTheCourse");
             JSONArray jsonArray = new JSONArray(node.toString());
-            String tableData = StudentMarksTable.getTableFromJson(jsonArray);
-            objNode.put("compositeData", tableData);
-            logger.info("yearsOfTheCourse::" + node);
+            String tableData = StudentMarkSheetTable.getTableFromJson(jsonArray);
+            if(tableData!=null){
+                objNode.put("compositeData", tableData);
+            }
+            logger.debug("yearsOfTheCourse::" + node);
         }
     }
 
@@ -611,13 +612,14 @@ public class RegistryEntityController extends AbstractController {
             String readerUserId = getUserId(entityName, request);
             JsonNode node = registryHelper.readEntity(readerUserId, entityName, entityId, false, null, false)
                     .get(entityName);
+            String credentialsFileName = getFileNameOfCredentials(node);
             JsonNode signedNode = objectMapper.readTree(node.get(OSSystemFields._osSignedData.name()).asText());
             return new ResponseEntity<>(certificateService.getCertificate(signedNode,
                     entityName,
                     entityId,
                     request.getHeader(HttpHeaders.ACCEPT),
                     getTemplateUrlFromRequest(request, entityName),
-                    JSONUtil.removeNodesByPath(node, definitionsManager.getExcludingFieldsForEntity(entityName))
+                    JSONUtil.removeNodesByPath(node, definitionsManager.getExcludingFieldsForEntity(entityName)),credentialsFileName
             ), HttpStatus.OK);
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -649,16 +651,16 @@ public class RegistryEntityController extends AbstractController {
             // call ur method
             Status status = new Status();
             JsonNode signedNode = objectMapper.readTree(node.get(OSSystemFields._osSignedData.name()).asText());
-
+            String credentialsFileName = getFileNameOfCredentials(node);
             Object certificate = certificateService.getCertificate(signedNode,
                     entityName,
                     entityId,
                     request.getHeader(HttpHeaders.ACCEPT),
                     getTemplateUrlFromRequest(request, entityName),
-                    JSONUtil.removeNodesByPath(node, definitionsManager.getExcludingFieldsForEntity(entityName))
+                    JSONUtil.removeNodesByPath(node, definitionsManager.getExcludingFieldsForEntity(entityName)),credentialsFileName
             );
 
-            String url = getCredUrl(entityId, status, certificate);
+            String url = getCredUrl(credentialsFileName, status, certificate);
             if(url != null){
                 status.setCertStatus("Success");
                 shareCredentials(node, status, url);
@@ -675,6 +677,26 @@ public class RegistryEntityController extends AbstractController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    private String getFileNameOfCredentials(JsonNode node) {
+        StringBuffer fileName = new StringBuffer();
+        String name = node.get("name").toString().replace(" ","");
+        name = name.replace("\"","");
+        fileName.append(name);
+        JsonNode rollNumber = node.get("rollNumber");
+        if(rollNumber!=null){
+            String rollNum = rollNumber.asText();
+            fileName.append("_"+rollNum);
+        }
+        else{
+            JsonNode enrollmentNumber = node.get("enrollmentNumber");
+            if(enrollmentNumber!=null) {
+                String regNum = enrollmentNumber.toString();
+                fileName.append("_"+regNum);
+            }
+        }
+        return fileName.toString();
     }
 
     @Nullable
@@ -719,7 +741,6 @@ public class RegistryEntityController extends AbstractController {
     private String getCertificate(String entityId, Status status, Object certificate) throws Exception {
         String url = null;
         if (certificate != null) {
-
             logger.info("Credentials generation for EntityId:"+entityId);
             url = certificateService.saveToGCS(certificate, entityId);
             logger.debug("Final url credentials:"+url);
@@ -1005,13 +1026,14 @@ public class RegistryEntityController extends AbstractController {
             String readerUserId = getUserId(entityName, request);
             JsonNode node = registryHelper.readEntity(readerUserId, entityName, entityId, false, null, false)
                     .get(entityName).get(attestationName);
+            String credentialsFileName = getFileNameOfCredentials(node);
             JsonNode attestationNode = getAttestationSignedData(attestationId, node);
             return new ResponseEntity<>(certificateService.getCertificate(attestationNode,
                     entityName,
                     entityId,
                     request.getHeader(HttpHeaders.ACCEPT),
                     getTemplateUrlFromRequest(request, entityName),
-                    getAttestationNode(attestationId, node)
+                    getAttestationNode(attestationId, node),credentialsFileName
             ), HttpStatus.OK);
         } catch (AttestationNotFoundException e) {
             logger.error(e.getMessage());

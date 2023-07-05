@@ -57,6 +57,7 @@ public class ClaimRequestClient {
 
     public String saveFileToGCS(Object certificate, String entityId) {
         String fileName = entityId + PDF;
+        logger.info("Credentials File Name."+fileName);
         String url = null;
         byte[] bytes = convertObtToByte(certificate);
         HttpHeaders headers = new HttpHeaders();

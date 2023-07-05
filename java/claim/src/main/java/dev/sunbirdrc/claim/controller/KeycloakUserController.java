@@ -24,6 +24,7 @@ public class KeycloakUserController {
      */
     @PostMapping("/login")
     public ResponseEntity<KeycloakTokenDetailsDTO> loginUser(@RequestBody KeycloakUserDTO userDTO) {
+        // TO_DO - PW should be in encrypted format
         KeycloakTokenDetailsDTO keycloakTokenDetailsDTO = keycloakUserService.loginAndGenerateKeycloakToken(userDTO);
 
         return new ResponseEntity<>(keycloakTokenDetailsDTO, HttpStatus.OK);

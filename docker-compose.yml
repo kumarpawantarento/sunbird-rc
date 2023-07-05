@@ -19,7 +19,7 @@ services:
     networks:
       - credential-ms_db_net
       
-    db:
+  db:
     image: postgres
     volumes:
       - ./${DB_DIR-db-data}:/var/lib/postgresql/data
