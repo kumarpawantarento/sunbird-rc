@@ -20,10 +20,10 @@ public class Credentials {
     @GeneratedValue(strategy = GenerationType.TABLE)
     private Long id;
 
-    @Column(name = "course")
+    @Column(name = "course",unique=true)
     private String course;
 
-    @Column(name = "credentialName")
+    @Column(name = "credentialName",unique=true)
     private String credentialName;
 
     @Column(name = "issueDate")
@@ -37,5 +37,6 @@ public class Credentials {
     @JoinColumn(name = "learner_id")
     @JsonIgnore
     private Learner learner;
+
 
 }
