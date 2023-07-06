@@ -27,22 +27,32 @@ public class CredentialsService {
     public void saveLearnerWithCredentials(Learner learner) {
         String rollNumber = learner.getRollNumber();
         List<Learner> learnersWithSameRollNumber = learnerRepository.findByRollNumber(rollNumber);
-
+        Learner existingLearner = null;
         if (!learnersWithSameRollNumber.isEmpty()) {
-            String errorMessage = "Roll number " + rollNumber + " already exists.";
-            logger.error(errorMessage);
-            throw new IllegalArgumentException(errorMessage);
+            existingLearner = learnersWithSameRollNumber.get(0);
+            logger.warn("Roll number " + rollNumber + " already exists.");
         }
 
-        List<Credentials> credentialsList = learner.getCredentialsList();
+        if (existingLearner != null) {
+            List<Credentials> credentialsList = learner.getCredentialsList();
+            for (Credentials credentials : credentialsList) {
+                credentials.setLearner(existingLearner);
+                credentialsRepository.save(credentials);
+            }
 
-        for (Credentials credentials : credentialsList) {
-            credentials.setLearner(learner);
+            logger.info("Credentials saved successfully for the learner with existing roll number");
+        } else {
+            learnerRepository.save(learner);
+            logger.info("Learner saved successfully");
+
+            List<Credentials> credentialsList = learner.getCredentialsList();
+            for (Credentials credentials : credentialsList) {
+                credentials.setLearner(learner);
+                credentialsRepository.save(credentials);
+            }
+
+            logger.info("Credentials saved successfully for the learner");
         }
-
-        learnerRepository.save(learner);
-
-        logger.info("Learner with credentials saved successfully");
     }
 
 
