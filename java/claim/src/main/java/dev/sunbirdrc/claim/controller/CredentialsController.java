@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/credentials")
+@RequestMapping("/api/v1/credentials")
 public class CredentialsController {
     @Autowired
     private CredentialsService credentialService;

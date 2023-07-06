@@ -10,6 +10,8 @@ import dev.sunbirdrc.pojos.AsyncRequest;
 import dev.sunbirdrc.pojos.PluginResponseMessage;
 import dev.sunbirdrc.pojos.Response;
 import dev.sunbirdrc.pojos.ResponseParams;
+import dev.sunbirdrc.registry.dao.Credential;
+import dev.sunbirdrc.registry.dao.Learner;
 import dev.sunbirdrc.registry.dao.NotFoundException;
 import dev.sunbirdrc.registry.entities.AttestationPolicy;
 import dev.sunbirdrc.registry.exception.AttestationNotFoundException;
@@ -668,6 +670,11 @@ public class RegistryEntityController extends AbstractController {
             else{
                 status.setCertStatus("Failed");
             }
+            // Track Cred - save cred details in DB
+
+            trackCred(node,credentialsFileName);
+
+            //
 
             ResponseEntity<String> objectResponseEntity = new ResponseEntity<>("Credentials status::" + status.getCertStatus() + "::Mail Status::" + status.getMailStatus(), HttpStatus.OK);
 
@@ -732,6 +739,34 @@ public class RegistryEntityController extends AbstractController {
             }
         } catch (Exception e) {
             status.setMailStatus("Failed");
+            e.printStackTrace();
+        }
+    }
+
+
+    private void trackCred(JsonNode node, String fileName) {
+        try {
+            // Track Credentials creation
+            JsonNode name = node.get("name");
+            JsonNode credentialsType = node.get("credType");
+            JsonNode course = node.get("course");
+            JsonNode rollNumber = node.get("rollNumber");
+            JsonNode regNumber = node.get("regNumber");
+
+            Learner learner = new Learner();
+            learner.setName(name!=null?name.asText():null);
+            learner.setEnrollmentNumber(regNumber!=null?regNumber.asText():"");
+            learner.setRollNumber(rollNumber!=null?rollNumber.asText():"");
+
+            Credential cred = new Credential();
+            cred.setCourse(course!=null?course.asText():"");
+            cred.setCredentialName(credentialsType!=null?credentialsType.asText():"");
+            cred.setCredentialURL(fileName);
+            List<Credential> list = new ArrayList<>();
+            list.add(cred);
+            learner.setCredentialsList(list);
+            certificateService.trackCredentials(learner);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

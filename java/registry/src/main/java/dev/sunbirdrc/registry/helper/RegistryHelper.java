@@ -779,7 +779,14 @@ public class RegistryHelper {
 
     private JsonNode getUserInfoFromRegistry(HttpServletRequest request, String entityName) throws Exception {
         String userId = getUserId(request,entityName);
-        String filterString =  new Scanner(request.getInputStream(), "UTF-8").useDelimiter("\\A").next();
+        Scanner scanner = new Scanner(request.getInputStream(), "UTF-8");
+        String filterString = null;
+        if(scanner!=null){
+            Scanner scanner1 = scanner.useDelimiter("\\A");
+            if(scanner1.hasNext())
+                filterString =  scanner1.next();
+        }
+
         if (userId != null) {
             ObjectNode payload = JsonNodeFactory.instance.objectNode();
             payload.set(ENTITY_TYPE, JsonNodeFactory.instance.arrayNode().add(entityName));
