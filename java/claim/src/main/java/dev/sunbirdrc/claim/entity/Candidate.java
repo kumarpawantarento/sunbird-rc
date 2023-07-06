@@ -1,6 +1,7 @@
 package dev.sunbirdrc.claim.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import dev.sunbirdrc.claim.status.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -72,5 +73,9 @@ public class Candidate {
 
     @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Course> courses;
+
+    @Column(name="status")
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 }
