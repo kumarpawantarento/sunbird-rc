@@ -91,9 +91,10 @@ public class Response {
 		KEYS(getApiName() + ".utils.keys"),
 		ENCRYPT(getApiName() + ".utils.encrypt"),
 		DECRYPT(getApiName() + ".utils.decrypt"),
-        SEND(getApiName() + ".registry.send"),
+		SEND(getApiName() + ".registry.send"),
+		REVOKE(getApiName() + ".utils.revoke"),
 		NONE("");
-        private String id;
+		private String id;
 
 		private API_ID(String id) {
 			this.id = id;

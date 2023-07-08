@@ -324,7 +324,7 @@ public class RegistryServiceImplTest {
 		arrayNode.add("Class XII");
 		affiliationNode.set("classes", arrayNode);
 		when(shard.getShardLabel()).thenReturn("");
-		registryService.updateEntity(shard, "", instituteOsid, String.valueOf(instituteNode));
+		registryService.updateEntity(shard, "", instituteOsid, String.valueOf(instituteNode), false);
 		ArgumentCaptor<JsonNode> esNodeCaptor = ArgumentCaptor.forClass(JsonNode.class);
 		verify(registryService, times(1)).callESActors(esNodeCaptor.capture(),any(),any(),any(),any());
 		esNodeCaptor.getValue();
@@ -349,7 +349,7 @@ public class RegistryServiceImplTest {
 		JsonNode instituteNode = vertexReader.read("Institute", instituteOsid);
 		((ObjectNode)instituteNode.get("Institute")).set("instituteName", JsonNodeFactory.instance.textNode("Holy Cross"));
 		when(shard.getShardLabel()).thenReturn("");
-		registryService.updateEntity(shard, "", instituteOsid, String.valueOf(instituteNode));
+		registryService.updateEntity(shard, "", instituteOsid, String.valueOf(instituteNode), false);
 		ArgumentCaptor<JsonNode> esNodeCaptor = ArgumentCaptor.forClass(JsonNode.class);
 		verify(registryService, times(1)).callESActors(esNodeCaptor.capture(),any(),any(),any(),any());
 		esNodeCaptor.getValue();
@@ -381,7 +381,7 @@ public class RegistryServiceImplTest {
 				"  }\n" +
 				"}"));
 		when(shard.getShardLabel()).thenReturn("");
-		registryService.updateEntity(shard, "", studentOsid, String.valueOf(inputJson));
+		registryService.updateEntity(shard, "", studentOsid, String.valueOf(inputJson), false);
 		ArgumentCaptor<JsonNode> esNodeCaptor = ArgumentCaptor.forClass(JsonNode.class);
 		verify(registryService, times(1)).callESActors(esNodeCaptor.capture(),any(),any(),any(),any());
 		esNodeCaptor.getValue();
@@ -411,7 +411,7 @@ public class RegistryServiceImplTest {
 				"  \"dob\": \"10-10-1995\"\n" +
 				"}"));
 		when(shard.getShardLabel()).thenReturn("");
-		registryService.updateEntity(shard, "", studentOsid, String.valueOf(inputJson));
+		registryService.updateEntity(shard, "", studentOsid, String.valueOf(inputJson), false);
 		ArgumentCaptor<JsonNode> esNodeCaptor = ArgumentCaptor.forClass(JsonNode.class);
 		verify(registryService, times(1)).callESActors(esNodeCaptor.capture(),any(),any(),any(),any());
 		esNodeCaptor.getValue();

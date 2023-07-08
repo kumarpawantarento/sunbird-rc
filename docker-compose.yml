@@ -42,6 +42,9 @@ services:
       - connectionInfo_uri=jdbc:postgresql://localhost:5432/registry
       - connectionInfo_username=postgres
       - connectionInfo_password=yoursupersecret
+      - event_enabled=${EVENT_ENABLED-true}
+      - event_topic=events
+      - event_providerName=dev.sunbirdrc.registry.service.impl.KafkaEventService
       - elastic_search_connection_url=es:9200
       - elastic_search_auth_enabled=${ELASTIC_SECURITY_ENABLED-false}
       - elastic_search_username=${ELASTIC_SEARCH_USERNAME-elastic}
@@ -68,7 +71,7 @@ services:
       - sunbird_keycloak_user_password=abcd@123
       - logging.level.root=INFO
       - enable_external_templates=true
-      - async_enabled=${ASYNC_ENABLED-false}
+      - async_enabled=${ASYNC_ENABLED-true}
       - authentication_enabled=true
       - kafka_bootstrap_address=kafka:9092
       - webhook_enabled=false
@@ -80,6 +83,8 @@ services:
       - "8081:8081"
     depends_on:
       es:
+        condition: service_healthy
+      db:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -nv -t1 --spider http://localhost:8081/health || exit 1" ]
@@ -235,11 +240,69 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+  nginx:
+    image: dockerhub/sunbird-rc-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      registry:
+        condition: service_healthy
+      context-proxy-service:
+        condition: service_started
+      public-key-service:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      claim-ms:
+        condition: service_started
+      file-storage:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "localhost:80" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+  metrics:
+    image: metrix-1:latest
+    environment:
+      CLICK_HOUSE_URL: clickhouse:9000
+      CLICKHOUSE_DATABASE: default
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_METRICS_TOPIC: events
+      REDIS_URL: redis:6379
+    ports:
+      - "8070:8070"
+    depends_on:
+      kafka:
+        condition: service_started
+      registry:
+        condition: service_healthy
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
-      
-networks:
-  credential-ms_db_net:
-    external: true      
+  # digilocker-certificate-api:
+  #   image: digilocker-certificate-api
+  #   volumes:
+  #     - ${PWD}/services/digilocker-certificate-api/config/:/go/config/
+  #   ports:
+  #     - "8087:8087"
+  #   environment:
+  #     KEYCLOAK_CLIENT_ID: admin-api
+  #     KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_SECRET}
+  #     DIGILOCKER_HMAC_AUTHKEY: ${DIGILOCKER_HMAC_AUTHKEY}
+  #     DIGILOCKER_AUTH_KEYNAME: x-digilocker-hmac
+  #     PORT: 8087
+  # bulk_issuance:
+  #   image: sunbird-rc-bulk-issuance
+  #   ports:
+  #     - "5665:5665"
+  #   environment:
+  #     REGISTRY_BASE_URL: http://registry:8081/
+  #     DATABASE_HOST: db
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.4.2.11-alpine
+    ports:
+      - "9002:9000"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
