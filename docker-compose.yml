@@ -51,7 +51,7 @@ services:
       - sunbird_sso_url=http://localhost:8080/auth
       - sunbird_sso_admin_client_id=${KEYCLOAK_ADMIN_CLIENT_ID-admin-api}
       - sunbird_sso_client_id=${KEYCLOAK_CLIENT_ID-registry-frontend}
-      - sunbird_sso_admin_client_secret=p6AIyPcbtPBBm3yJ5KRVmZL0BoZdFxE2
+      - sunbird_sso_admin_client_secret=c815c038-d900-40c5-9370-cc1479c36ded
       - claims_url=http://claim-ms:8082
       - sign_url=http://certificate-signer:8079/sign
       - sign_health_check_url=http://certificate-signer:8079/health
