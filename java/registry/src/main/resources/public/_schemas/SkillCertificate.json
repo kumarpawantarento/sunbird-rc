@@ -14,7 +14,7 @@
     "SkillCertificate": {
       "$id": "#/properties/SkillCertificate",
       "type": "object",
-      "title": "The SkillCertificate Schema",
+      "title": "SkillCertificate",
       "required": [
         "name",
         "contact"
@@ -43,6 +43,12 @@
           "type": "string"
         },
         "rollNumber": {
+          "type": "string"
+        },
+        "examYear": {
+          "type": "string"
+        },
+        "enrollmentNumber": {
           "type": "string"
         },
         "note": {
@@ -79,7 +85,7 @@
       "contact"
     ],
     "ownershipAttributes": [],
-    "roles": [],
+    "roles": ["anonymous"],
     "inviteRoles": [
       "anonymous"
     ],
