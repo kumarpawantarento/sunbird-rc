@@ -121,16 +121,16 @@ public class ClaimRequestClient {
     }
 
     public BarCode getBarCode(BarCode barCode) {
-        logger.info("in Client::"+barCode.getBarCodeText());
+        logger.debug("in getBarCode text::"+barCode.getBarCodeText());
         BarCode node = restTemplate.postForObject(claimRequestUrl + BAR_CODE_API, barCode, BarCode.class);
-        logger.info("BarCode generated ...");
+        logger.debug("BarCode generated ...");
         return node;
     }
 
     public void saveCredentials(Learner learner) {
         logger.info("in Client::"+"Track certificate");
         String node = restTemplate.postForObject(claimRequestUrl + SAVE_CRED_API, learner, String.class);
-        logger.info("certificate saved ...");
+        logger.info("in Client certificate saved ...");
 
     }
 
