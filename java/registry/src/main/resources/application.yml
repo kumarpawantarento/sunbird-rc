@@ -230,7 +230,7 @@ keycloak:
   resource: ${sunbird_sso_client_id:registry-frontend}
 keycloak-admin:
   client-id: ${sunbird_sso_admin_client_id:admin-api}
-  client-secret: ${sunbird_sso_admin_client_secret:e5654e31-27e5-450e-9a7b-22154972b6a6}
+  client-secret: ${sunbird_sso_admin_client_secret:c815c038-d900-40c5-9370-cc1479c36ded}
 keycloak-user:
   set-default-password: ${sunbird_keycloak_user_set_password:true}
   default-password: ${sunbird_keycloak_user_password:admin}
@@ -242,7 +242,7 @@ claims:
   url: ${claims_url:http://localhost:8082}
 authentication:
   enabled: ${authentication_enabled:true}
-  publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApBm7dcA0Q/xmZVhn2mp9rmTeTleleIlDrY5w5JG5PaL9gzSd7Wj0wfnET7GBpmlpVkN/HewgZloRMMlTih81kV/RQbjLwNV0lMjXL8oIZFySGuUsdPgjwHqNbcjIUht31kYDJO+aVVbPwu9kCSvyFhzUUmG5/WfaDjjSu3daEVZlgnzsZOxYIGzvE02mkZPH78mK2Xe1H97jFsVhdoeMsu+cV0e3Aa288xR+Yqp+kqnP8d2vVmf3ZsshBzuUeWP/Xy+O29Luedxg2K6B2DekDMppfmlF1vKrNLpHAl8Zn720eMSY5tUqPxVTt7iheXeWYmrcN2sN18/7qvkaD+dkOwIDAQAB}
+  publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhAIc5Aa4vAeB6wFDNq9fFe8bkIX9+TAEUdOzp1eaY4ukX4pnEykAwBB4XrM3rWzbDW3I9QKi9RpEyIohf0kckgrAKkfuz+frVjFeYqQy+1BO8T+mDFSb27/3PX1Y8Q3kFYgqvPpC7sNKdh0qcxzdQCXBbLxDYRmZtUfOaNR9z9I1Y1otjBZSZCRWeH2B/xpmImvCrndeTpEajPt+TvefPqzMcIuRQGIZE5tFoj9sRd2+L90Rk7/zRXXRXJFgv9QIpUCa1v0gSdzlm4PG59vthVFTldAhqJRWcgWQ+1LJrD/C3mbF0bpVYBo4xb6GKU2Se26o3iUjgi8TQz6ipJejsQIDAQAB}
   realm:  ${authentication_realm:sunbird-rc}
   url:  ${authentication_url:localhost:8080/auth}
 
