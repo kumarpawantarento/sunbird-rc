@@ -70,7 +70,7 @@ workflow:
   enabled: ${workflow.enable:false}
 
 async:
-  enabled: ${async_enabled:true}
+  enabled: ${async_enabled:false}
 
 kafka:
   bootstrapAddress: ${kafka_bootstrap_address:localhost:9092}

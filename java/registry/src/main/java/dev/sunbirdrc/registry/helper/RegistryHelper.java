@@ -732,6 +732,7 @@ public class RegistryHelper {
     public String getKeycloakUserId(HttpServletRequest request) throws Exception {
         KeycloakAuthenticationToken principal = (KeycloakAuthenticationToken) request.getUserPrincipal();
         if (principal != null) {
+            logger.info("principal not null");
             return principal.getAccount().getPrincipal().getName();
         }
         throw new Exception("Forbidden");
@@ -915,6 +916,11 @@ public class RegistryHelper {
                 return ROLE_ANONYMOUS;
             }
             Set<String> userRoles = getUserRolesFromRequest(request);
+            if(userRoles!=null){
+                logger.info("userRoles"+userRoles.toString());
+            }else
+                logger.info("userRole is null");
+
             authorizeUserRole(userRoles, managingRoles);
             return fetchUserIdFromToken(request);
         } else {
