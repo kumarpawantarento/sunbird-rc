@@ -755,7 +755,7 @@ public class RegistryHelper {
 
     public JsonNode getRequestedUserDetails(HttpServletRequest request, String entityName) throws Exception {
         if (isInternalRegistry(entityName)) {
-            return getUserInfoFromRegistry(request, entityName);
+              return getUserInfoFromRegistry(request, entityName);
         } else if (entityTypeHandler.isExternalRegistry(entityName)) {
             return getUserInfoFromKeyCloak(request, entityName);
         }
@@ -779,13 +779,35 @@ public class RegistryHelper {
 
     private JsonNode getUserInfoFromRegistry(HttpServletRequest request, String entityName) throws Exception {
         String userId = getUserId(request,entityName);
+        Scanner scanner = new Scanner(request.getInputStream(), "UTF-8");
+        String filterString = null;
+        if(scanner!=null){
+            Scanner scanner1 = scanner.useDelimiter("\\A");
+            if(scanner1.hasNext())
+                filterString =  scanner1.next();
+        }
+
         if (userId != null) {
             ObjectNode payload = JsonNodeFactory.instance.objectNode();
             payload.set(ENTITY_TYPE, JsonNodeFactory.instance.arrayNode().add(entityName));
             ObjectNode filters = JsonNodeFactory.instance.objectNode();
-            filters.set(OSSystemFields.osOwner.toString(), JsonNodeFactory.instance.objectNode().put("contains", userId));
-            payload.set(FILTERS, filters);
+            if(filterString!=null) {
+                ObjectNode customFilter = (ObjectNode) new ObjectMapper().readTree(filterString);
+                if(customFilter!=null){
+                Iterator<String> fieldNames = customFilter.fieldNames();
+                while (fieldNames.hasNext()) {
+                    String key = fieldNames.next();
+                    String value = String.valueOf(customFilter.get(key));
+                    JsonNode contains = JsonNodeFactory.instance.objectNode().put("contains", value);
+                    filters.set(key, contains);
+                }
+                }
+            }
+            ObjectNode contains = JsonNodeFactory.instance.objectNode().put("contains", userId);
+            filters.set(OSSystemFields.osOwner.toString(), contains);
 
+            //payload.set(FILTERS, filters.get("filters"));
+            payload.set(FILTERS, filters);
             watch.start("RegistryController.searchEntity");
             JsonNode result = searchEntity(payload);
             watch.stop("RegistryController.searchEntity");

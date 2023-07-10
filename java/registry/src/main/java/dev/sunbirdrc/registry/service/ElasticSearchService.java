@@ -58,10 +58,10 @@ public class ElasticSearchService implements ISearchService {
 
     @Override
     public JsonNode search(JsonNode inputQueryNode) throws IOException {
-        logger.debug("search request body = " + inputQueryNode);
+        logger.info("search request body = " + inputQueryNode);
 
         SearchQuery searchQuery = getSearchQuery(inputQueryNode, offset, limit);
-
+        logger.info("search query :: {}", searchQuery);
         Filter uuidFilter = getUUIDFilter(searchQuery, uuidPropertyName);
         
         // Fetch only Active records

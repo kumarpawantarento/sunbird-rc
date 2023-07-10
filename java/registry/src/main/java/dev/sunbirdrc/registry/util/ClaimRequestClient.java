@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.sunbirdrc.pojos.dto.ClaimDTO;
 import dev.sunbirdrc.registry.controller.RegistryController;
+import dev.sunbirdrc.registry.dao.Learner;
 import dev.sunbirdrc.registry.model.dto.BarCode;
 import dev.sunbirdrc.registry.model.dto.MailDto;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,7 @@ public class ClaimRequestClient {
 
     private static final String MAIL_SEND_URL = "/api/v1/sendMail";
     private static final String BAR_CODE_API = "/api/v1/barcode";
+    private static final String SAVE_CRED_API = "/api/v1/credentials/save";
     private static final String PDF = ".PDF";
     private static final String GCS_CODE_API = "/api/v1/files/upload";
 
@@ -125,6 +127,13 @@ public class ClaimRequestClient {
         return node;
     }
 
+    public void saveCredentials(Learner learner) {
+        logger.info("in Client::"+"Track certificate");
+        String node = restTemplate.postForObject(claimRequestUrl + SAVE_CRED_API, learner, String.class);
+        logger.info("certificate saved ...");
+
+    }
+
     public JsonNode getClaims(JsonNode jsonNode, Pageable pageable, String entityName) {
         final String QUERY_PARAMS = "?size=" + pageable.getPageSize() + "&page="+pageable.getPageNumber();
         ObjectNode requestBody = JsonNodeFactory.instance.objectNode();
@@ -148,4 +157,6 @@ public class ClaimRequestClient {
                 Object.class
         );
     }
+
+
 }

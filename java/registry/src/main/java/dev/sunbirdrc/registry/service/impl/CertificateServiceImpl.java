@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import dev.sunbirdrc.pojos.ComponentHealthInfo;
+import dev.sunbirdrc.registry.dao.Learner;
 import dev.sunbirdrc.registry.middleware.util.Constants;
 import dev.sunbirdrc.registry.model.dto.BarCode;
 import dev.sunbirdrc.registry.model.dto.MailDto;
@@ -90,6 +91,17 @@ public class CertificateServiceImpl implements ICertificateService {
             logger.info("Sharing Certificate end");
         } catch (Exception e) {
             logger.error("Get certificate failed", e);
+        }
+
+    }
+
+    public void trackCredentials(Learner learner) {
+        try {
+            logger.info("Track Certificate start");
+            claimRequestClient.saveCredentials(learner);
+            logger.info("Track Certificate end");
+        } catch (Exception e) {
+            logger.error("Track certificate failed", e);
         }
 
     }
