@@ -70,7 +70,7 @@ workflow:
   enabled: ${workflow.enable:false}
 
 async:
-  enabled: ${async_enabled:true}
+  enabled: ${async_enabled:false}
 
 kafka:
   bootstrapAddress: ${kafka_bootstrap_address:localhost:9092}
@@ -242,7 +242,7 @@ claims:
   url: ${claims_url:http://localhost:8082}
 authentication:
   enabled: ${authentication_enabled:true}
-  publicKey:  ${authentication_publickey:MIICozCCAYsCBgGIfCDhgTANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDApzdW5iaXJkLXJjMB4XDTIzMDYwMjEyNDAwOVoXDTMzMDYwMjEyNDE0OVowFTETMBEGA1UEAwwKc3VuYmlyZC1yYzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJyxOOpX/8qzYl1GoMCqJo0dPVSQKFs7FifIzIgU72Pb5REM2Agw0P5UzyE6CwyOVJgcfdYGlQNJQXjbkaQwE5SNb5iiliji5ejqfw7hbk+WfJ/qNXo6VeIoEra72+JEivSnAFk2ox7K4BXFJ89ndHdhAcSZy4GJU3kzqT1BNcAe1Hhir9rZB+QOV6CaZZ3h1qlknEvLG/Jfh7f79g+oQGAtnicF1frBQ9GqXHJRPBi0HrPmItQj0WZwSjJdxGpSrK0W3+/CYCyIRyZQuXgDcl76lDwVNdCPYamxQeJ764wIv8DBbo2rAC5mb3YlfwU2+5zbCQafehRs1Q5JmuDFTrsCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAjh4kYjlLheFCi/wz5XGFS+7w4y2QAD/tM/S6VsOYGpNtNLG/qFPRf6fYn/zPmdyugNAL8KhWTBwknJwfoQlbCAQSqBDRGbwA3cUb7CIg0vRjkUq3s7IDB8pk+fN65lUqj/J7bC19GXd7sjC+zWcpYhBIMkFEdx/ylZgdbJkdXWTvcmUaX0Q2FLUBBYbEpz6fzRysiSX7MelzafLP0PJ+0HOwU7PRieE6qkXoj6znRNfpt6duRtdz3Tj8uCfJGL5V+q+iZeZmtNJXrVfGuhGBDStJOQiehTfV1oadpg5cI7EXvEVa6oGFyTufgBjsoRWVtfFzk2cNY8EVPA6mEHV7BA==}
+  publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnLE46lf/yrNiXUagwKomjR09VJAoWzsWJ8jMiBTvY9vlEQzYCDDQ/lTPIToLDI5UmBx91gaVA0lBeNuRpDATlI1vmKKWKOLl6Op/DuFuT5Z8n+o1ejpV4igStrvb4kSK9KcAWTajHsrgFcUnz2d0d2EBxJnLgYlTeTOpPUE1wB7UeGKv2tkH5A5XoJplneHWqWScS8sb8l+Ht/v2D6hAYC2eJwXV+sFD0apcclE8GLQes+Yi1CPRZnBKMl3EalKsrRbf78JgLIhHJlC5eANyXvqUPBU10I9hqbFB4nvrjAi/wMFujasALmZvdiV/BTb7nNsJBp96FGzVDkma4MVOuwIDAQAB}
   realm:  ${authentication_realm:sunbird-rc}
   url:  ${authentication_url:localhost:8080/auth}
 
