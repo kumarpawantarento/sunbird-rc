@@ -149,8 +149,8 @@ database:
       uri: ${connectionInfo_uri:jdbc:postgresql://10.0.2.18:5432/registry}
 
       username: ${connectionInfo_username:postgres}
-      #password: ${connectionInfo_password:yoursupersecret}
-      password: ${connectionInfo_password:postgres}
+      password: ${connectionInfo_password:yoursupersecret}
+      #password: ${connectionInfo_password:postgres}
       maxPoolSize: ${connectionInfo_maxPoolSize:200}
 
       # Any other shard information follows...
