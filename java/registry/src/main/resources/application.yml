@@ -23,12 +23,12 @@ server:
 
 notification:
   service:
-    enabled: ${notification_enabled:true}
+    enabled: ${notification_enabled:false}
     connection_url: ${notification_url:http://localhost:8765/notification-service/v1/notification}
     health_url: ${notification_url:http://localhost:8765/notification-service/v1/health}
 invite:
-  required_validation_enabled: ${invite_required_validation_enabled:true}
-  signature_enabled: ${invite_signature_enabled:true}
+  required_validation_enabled: ${invite_required_validation_enabled:false}
+  signature_enabled: ${invite_signature_enabled:false}
 
 cors:
   # By default, allowing all domains to access this service. Choose a particular domain,
@@ -47,19 +47,19 @@ registry:
     enable: ${registry_base_apis_enable:true}
   externalentities: ${external_entities:}
   context:
-    base: ${registry_context_base:http://localhost:8081/}
+    base: ${registry_context_base:http://10.0.2.18:8081/}
   system:
-    base: ${registry_system_base:http://localhost:8081/sunbirdrc/}
+    base: ${registry_system_base:http://10.0.2.18:8081/sunbirdrc/}
   rootEntity:
     type: ${registry_rootentity_type:Regulator}
   schema:
-    url: ${registry_schema_url:http://localhost:8081/public/_schemas/}
+    url: ${registry_schema_url:http://10.0.2.18:8081/public/_schemas/}
   attestationPolicy:
     createAccess: ${create_attestation_access_entities:Regulator}
   manager:
     type: ${manager_type:DefinitionsManager}
   redis:
-    host: ${redis_host:localhost}
+    host: ${redis_host:10.0.2.18}
     port: ${redis_port:6379}
   LOGO:
     url: ${imgBaseUri:https://casa.upsmfac.org/UploadedFiles/Student/}
@@ -73,13 +73,13 @@ async:
   enabled: ${async_enabled:false}
 
 kafka:
-  bootstrapAddress: ${kafka_bootstrap_address:localhost:9092}
+  bootstrapAddress: ${kafka_bootstrap_address:10.0.2.18:9092}
   createEntityTopic: ${kafka_create_entity_topic:createentity}
   postCreateEntityTopic: ${kafka_post_create_entity_topic:postcreateentity}
 
 webhook:
   enabled: ${webhook_enabled:false}
-  url: ${webhook_url:http://localhost:5001/api/v1/callback}
+  url: ${webhook_url:http://10.0.2.18:5001/api/v1/callback}
 
 conditionalAccess:
   internal: _internal
@@ -146,7 +146,7 @@ database:
       #     ** Example - Postgres - jdbc:postgresql://localhost:5432/yourdb
       #     * 3. NoSQL  databases (Cassandra)
       #     ** Example - cassandra - jdbc:cassandra://localhost:9160/yourdb
-      uri: ${connectionInfo_uri:jdbc:postgresql://localhost:5432/registry}
+      uri: ${connectionInfo_uri:jdbc:postgresql://10.0.2.18:5432/registry}
 
       username: ${connectionInfo_username:postgres}
       #password: ${connectionInfo_password:yoursupersecret}
@@ -157,7 +157,7 @@ database:
       #-
       #shardId: shard2
       #shardLabel: 2
-      #uri: ${connectionInfo_uri:bolt://localhost:7688}
+      #uri: ${connectionInfo_uri:bolt://10.0.2.18:7688}
       #username: ${connectionInfo_username:neo4j}
       #password: ${connectionInfo_password:}
 
@@ -167,14 +167,14 @@ database:
 cassandra:
   graphFactory: org.janusgraph.core.JanusGraphFactory
   backend: "cql"
-  hostname: ${cassandra_host:localhost}
+  hostname: ${cassandra_host:10.0.2.18}
   keyspace: ${cassandra_keyspace:registry_db}
   db.cache.size: ${cassandra_db_cache_size:0.25}
   # wait time in milliseconds to clean the cache
   db.cache.clean.wait: ${cassandra_db_cache_clean_wait:60}
   index:
     storage.backend: ${cassandr_index_storage:elasticsearch}
-    hostname: ${cassandra_index_hostname:localhost}
+    hostname: ${cassandra_index_hostname:10.0.2.18}
 
 # File for framing the entity while reading
 frame:
@@ -182,31 +182,31 @@ frame:
 
 encryption:
   enabled: ${encryption_enabled:false}
-  base: ${encryption_base:http://localhost:8013}
-  uri: ${encryption_uri:http://localhost:8013/encrypt}
+  base: ${encryption_base:http://10.0.2.18:8013}
+  uri: ${encryption_uri:http://10.0.2.18:8013/encrypt}
   batch:
-    uri: ${encryption_batch_uri:http://localhost:8013/encrypt/obj}
+    uri: ${encryption_batch_uri:http://10.0.2.18:8013/encrypt/obj}
 
 decryption:
-  uri: ${decryption_uri:http://localhost:8013/decrypt}
+  uri: ${decryption_uri:http://10.0.2.18:8013/decrypt}
   batch:
-    uri: ${decryption_batch_uri:http://localhost:8013/decrypt/obj}
+    uri: ${decryption_batch_uri:http://10.0.2.18:8013/decrypt/obj}
 
 signature:
-  enabled: ${signature_enabled:true}
-  healthCheckURL: ${sign_health_check_url:http://localhost:8079/health}
-  signURL: ${sign_url:http://localhost:8079/sign}
-  verifyURL: ${verify_url:http://localhost:8079/verify}
-  keysURL: ${keys_url:http://localhost:8013/keys/}
+  enabled: ${signature_enabled:false}
+  healthCheckURL: ${sign_health_check_url:http://10.0.2.18:8079/health}
+  signURL: ${sign_url:http://10.0.2.18:8079/sign}
+  verifyURL: ${verify_url:http://10.0.2.18:8079/verify}
+  keysURL: ${keys_url:http://10.0.2.18:8013/keys/}
   domain: ${domain_url:https://w3id.org/security/v1/}
   schema:
     config:
       name: SignatureShape
 
 certificate:
-  templateBaseUrl: ${template_base_url:http://localhost:8081/api/v1/templates/}
-  healthCheckURL: ${certificate_health_check_url:http://localhost:8078/health}
-  apiUrl: ${pdf_url:http://localhost:8078/api/v1/certificate}
+  templateBaseUrl: ${template_base_url:http://10.0.2.18:8081/api/v1/templates/}
+  healthCheckURL: ${certificate_health_check_url:http://10.0.2.18:8078/health}
+  apiUrl: ${pdf_url:http://10.0.2.18:8078/api/v1/certificate}
   templateFolderPath: ${template_folder_path:public/_schemas/templates/}
   enableExternalTemplates: ${enable_external_templates:true}
 
@@ -224,8 +224,8 @@ audit:
     suffixSeparator: ${audit_suffixSeparator:_}
 
 keycloak:
-  #publicKey:  ${sunbird_sso_publickey:pk}
-  auth-server-url: ${sunbird_sso_url:http://localhost:8080/auth}
+  publicKey:  ${sunbird_sso_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnLE46lf/yrNiXUagwKomjR09VJAoWzsWJ8jMiBTvY9vlEQzYCDDQ/lTPIToLDI5UmBx91gaVA0lBeNuRpDATlI1vmKKWKOLl6Op/DuFuT5Z8n+o1ejpV4igStrvb4kSK9KcAWTajHsrgFcUnz2d0d2EBxJnLgYlTeTOpPUE1wB7UeGKv2tkH5A5XoJplneHWqWScS8sb8l+Ht/v2D6hAYC2eJwXV+sFD0apcclE8GLQes+Yi1CPRZnBKMl3EalKsrRbf78JgLIhHJlC5eANyXvqUPBU10I9hqbFB4nvrjAi/wMFujasALmZvdiV/BTb7nNsJBp96FGzVDkma4MVOuwIDAQAB}
+  auth-server-url: ${sunbird_sso_url:http://10.0.2.18:8080/auth}
   realm: ${sunbird_sso_realm:sunbird-rc}
   resource: ${sunbird_sso_client_id:registry-frontend}
 keycloak-admin:
@@ -237,14 +237,14 @@ keycloak-user:
   # email actions which will be trigger by keycloak
   # example email actions: VERIFY_EMAIL, UPDATE_PROFILE, UPDATE_PASSWORD, TERMS_AND_CONDITIONS etc.
   # email details should be configured in keycloak realm settings
-  email-actions: ${keycloack_user_email_actions:VERIFY_EMAIL}
+  # email-actions: ${keycloack_user_email_actions:VERIFY_EMAIL}
 claims:
-  url: ${claims_url:http://localhost:8082}
+  url: ${claims_url:http://10.0.2.18:8082}
 authentication:
   enabled: ${authentication_enabled:true}
   publicKey:  ${authentication_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnLE46lf/yrNiXUagwKomjR09VJAoWzsWJ8jMiBTvY9vlEQzYCDDQ/lTPIToLDI5UmBx91gaVA0lBeNuRpDATlI1vmKKWKOLl6Op/DuFuT5Z8n+o1ejpV4igStrvb4kSK9KcAWTajHsrgFcUnz2d0d2EBxJnLgYlTeTOpPUE1wB7UeGKv2tkH5A5XoJplneHWqWScS8sb8l+Ht/v2D6hAYC2eJwXV+sFD0apcclE8GLQes+Yi1CPRZnBKMl3EalKsrRbf78JgLIhHJlC5eANyXvqUPBU10I9hqbFB4nvrjAi/wMFujasALmZvdiV/BTb7nNsJBp96FGzVDkma4MVOuwIDAQAB}
   realm:  ${authentication_realm:sunbird-rc}
-  url:  ${authentication_url:localhost:8080/auth}
+  url:  ${authentication_url:10.0.2.18:8080/auth}
 
 
 validation:
@@ -300,14 +300,14 @@ elastic:
     # elastic-search can be enable and disable through this flag
     enabled: ${elastic_search_enabled:true}
     # elastic-search connection info
-    connection_url: ${elastic_search_connection_url:localhost:9200}
+    connection_url: ${elastic_search_connection_url:10.0.2.18:9200}
     add_shard_prefix: ${elastic_search_add_shard_prefix:true}
     #if authentication is enabled
     auth_enabled: ${elastic_search_auth_enabled:false}
     elastic_username: ${elastic_search_username:elastic}
     elastic_password: ${elastic_search_password:}
 filestorage:
-  url: ${filestorage_connection_url:http://localhost:9000}
+  url: ${filestorage_connection_url:http://10.0.2.18:9000}
   accesskey: ${filestorage_access_key:admin}
   secretkey: ${filestorage_secret_key:12345678}
   bucketname: ${filestorage_bucket_key:issuance}
@@ -403,10 +403,10 @@ audit:
     suffixSeparator: ${audit_suffixSeparator:_}
 
 authentication:
-  enabled: ${authentication_enabled:false}
+  enabled: ${authentication_enabled:true}
   publicKey:  ${authentication_publickey:}
   realm:  ${authentication_realm:PartnerRegistry}
-  url:  ${authentication_url:http://localhost:8443/auth/}
+  url:  ${authentication_url:http://localhost:8080/auth/}
 
 keycloak:
   sso:
