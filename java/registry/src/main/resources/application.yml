@@ -225,7 +225,7 @@ audit:
 
 keycloak:
   publicKey:  ${sunbird_sso_publickey:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnLE46lf/yrNiXUagwKomjR09VJAoWzsWJ8jMiBTvY9vlEQzYCDDQ/lTPIToLDI5UmBx91gaVA0lBeNuRpDATlI1vmKKWKOLl6Op/DuFuT5Z8n+o1ejpV4igStrvb4kSK9KcAWTajHsrgFcUnz2d0d2EBxJnLgYlTeTOpPUE1wB7UeGKv2tkH5A5XoJplneHWqWScS8sb8l+Ht/v2D6hAYC2eJwXV+sFD0apcclE8GLQes+Yi1CPRZnBKMl3EalKsrRbf78JgLIhHJlC5eANyXvqUPBU10I9hqbFB4nvrjAi/wMFujasALmZvdiV/BTb7nNsJBp96FGzVDkma4MVOuwIDAQAB}
-  auth-server-url: ${sunbird_sso_url:http://10.0.2.18:8080/auth}
+  auth-server-url: ${sunbird_sso_url:http://10.0.2.18:8080}
   realm: ${sunbird_sso_realm:sunbird-rc}
   resource: ${sunbird_sso_client_id:registry-frontend}
 keycloak-admin:
