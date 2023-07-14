@@ -412,8 +412,10 @@ public class RegistryEntityController extends AbstractController {
         if (batCodeText != null) {
             BarCode barCodeNode = certificateService.getBarCode(code);
             ObjectNode objNode = (ObjectNode) rootNode;
-            objNode.put("barCode", barCodeNode.getBarCodeValue());
-            logger.debug("BarCodeValue::" + barCodeNode.getBarCodeValue());
+            if(barCodeNode!=null) {
+                objNode.put("barCode", barCodeNode.getBarCodeValue());
+                logger.debug("BarCodeValue::" + barCodeNode.getBarCodeValue());
+            }
         }
     }
 
