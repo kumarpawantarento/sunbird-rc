@@ -188,6 +188,7 @@ public class EntityParenter {
     public Vertex getKnownParentVertex(String definition, String shardId) {
         Vertex vertex = null;
         ShardParentInfoList shardParentInfoList = shardParentMap.get(shardId);
+        logger.info("Shrad Id Staus "+shardParentInfoList);
         for (ShardParentInfo shardParentInfo : shardParentInfoList.getParentInfos()) {
             if (shardParentInfo.getName().compareToIgnoreCase(definition) == 0) {
                 vertex = shardParentInfo.getVertex();

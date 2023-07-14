@@ -250,7 +250,7 @@ public class RegistryHelper {
             Shard shard = shardManager.getShard(inputJson.get(entityType).get(shardManager.getShardProperty()));
             watch.start("RegistryController.addToExistingEntity");
             String resultId;
-            if (asyncRequest.isEnabled()) {
+            if (asyncRequest != null && asyncRequest.isEnabled()) {
                 resultId = registryAsyncService.addEntity(shard, userId, inputJson, skipSignature);
                 recordId = new RecordIdentifier(null, resultId);
             } else {
@@ -258,7 +258,10 @@ public class RegistryHelper {
                 recordId = new RecordIdentifier(shard.getShardLabel(), resultId);
             }
             watch.stop("RegistryController.addToExistingEntity");
-            logger.info("AddEntity,{}", recordId.toString());
+            if(recordId!=null)
+                  logger.info("AddEntity,{}", recordId.toString());
+            else
+                logger.info("AddEntity null");
         } catch (Exception e) {
             logger.error("Exception in controller while adding entity !", e);
             throw new Exception(e);
