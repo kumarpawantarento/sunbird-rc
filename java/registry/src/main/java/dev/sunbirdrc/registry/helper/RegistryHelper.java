@@ -724,9 +724,9 @@ public class RegistryHelper {
 
     private String fetchUserIdFromToken(HttpServletRequest request) throws Exception {
         if(securityEnabled){
-            return DEFAULT_USER;
+            return getKeycloakUserId(request);
         }
-        return getKeycloakUserId(request);
+        return DEFAULT_USER;
     }
 
     public String getKeycloakUserId(HttpServletRequest request) throws Exception {
