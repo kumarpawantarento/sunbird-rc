@@ -48,10 +48,11 @@ public class PostgresToElasticsearch {
             while (resultSet.next()) {
                 System.out.print("RSSS:::"+resultSet.toString());
                 // Create an Elasticsearch index request for each row
+                String dateOfBirth = resultSet.getString("CourseName");
                 IndexRequest indexRequest = new IndexRequest(esIndex)
                         .id(resultSet.getString("osid"))
                         // need to fix this json data
-                        .source(resultSet.getString("name"), XContentType.JSON);
+                        .source(dateOfBirth, XContentType.JSON);
                 bulkRequest.add(indexRequest);
             }
 
