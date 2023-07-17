@@ -125,7 +125,8 @@ public class RegistryServiceImpl implements RegistryService {
         });
 
         healthCheck = new HealthCheckResponse(Constants.SUNBIRDRC_REGISTRY_API, overallHealthStatus.get(), checks);
-        logger.info("Heath Check :  ", checks.toArray().toString());
+        if(checks!=null)
+             logger.info("Heath Check :  ", checks.toArray().toString());
         return healthCheck;
     }
 
