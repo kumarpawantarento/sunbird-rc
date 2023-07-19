@@ -1,0 +1,14 @@
+clickhouse:
+  dsn: clickhouse:9002
+  database: default
+kafka:
+  bootstrapServers: kafka:9094
+  metricsTopic: metrics
+database:
+  providerName: clickhouse
+redis:
+  url: redis:6379
+cron:
+  scheduleTime: 00:00
+  scheduleInterval: 7
+  enable: true
