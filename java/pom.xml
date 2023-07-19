@@ -42,6 +42,7 @@
         <module>claim</module>
         <module>apitest</module>
         <module>plugins</module>
+        <module>user-management</module>
 
     </modules>
 
