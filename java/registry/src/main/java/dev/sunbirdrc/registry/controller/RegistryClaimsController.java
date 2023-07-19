@@ -49,8 +49,8 @@ public class RegistryClaimsController extends AbstractController{
             JsonNode result = registryHelper.getRequestedUserDetails(request, entityName);
             JsonNode jsonNode = result.get(entityName);
 
-            JsonNode claims = claimRequestClient.getClaims(jsonNode.get(0), pageable, entityName);
-            logger.info("Received {} claims", claims);
+            JsonNode claims = claimRequestClient.getClaims(result.get(entityName).get(0), pageable, entityName);
+            logger.info("Received {} claims", claims.size());
             return new ResponseEntity<>(claims, HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Fetching claims failed {}", e.getMessage());
