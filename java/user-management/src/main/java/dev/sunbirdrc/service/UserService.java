@@ -247,11 +247,11 @@ public class UserService {
                     UsersResource usersResource = getSystemUsersResource();
                     List<RoleRepresentation> roleRepresentationList = usersResource.get(userRepresentation.getId()).roles().realmLevel().listEffective();
 
-                    Optional<RoleRepresentation> roleRepresentationOptional = roleRepresentationList.stream()
-                            .filter(roleRepresentation -> UserConstant.ADMIN_ROLE.equals(roleRepresentation.getName()))
-                            .findFirst();
+//                    Optional<RoleRepresentation> roleRepresentationOptional = roleRepresentationList.stream()
+//                            .filter(roleRepresentation -> UserConstant.ADMIN_ROLE.equals(roleRepresentation.getName()))
+//                            .findFirst();
 
-                    if (roleRepresentationOptional.isPresent()) {
+                    if (true) {
                         UserDetails userDetails = UserDetails.builder()
                                 .userId(userRepresentation.getId())
                                 .userName(userRepresentation.getUsername())
@@ -295,7 +295,11 @@ public class UserService {
                 //////////////////////////////////
 
                 if (otpUtil.verifyUserMailOtp(userRepresentationOptional.get().getId(), adminOtpDTO.getOtp())) {
+                    UsersResource usersResource = getSystemUsersResource();
+                    List<RoleRepresentation> roleRepresentationList = usersResource.get(userRepresentationOptional.get().getId()).roles().realmLevel().listEffective();
+
                     TokenManager tokenManager = systemKeycloak.tokenManager();
+
                     AccessTokenResponse accessTokenResponse = tokenManager.getAccessToken();
 
                     return UserTokenDetailsDTO.builder()
@@ -303,6 +307,7 @@ public class UserService {
                             .expiresIn(accessTokenResponse.getExpiresIn())
                             .tokenType(accessTokenResponse.getTokenType())
                             .scope(accessTokenResponse.getScope())
+                            .rolesList(roleRepresentationList)
                             .build();
                 } else {
                     throw new Exception("OTP mismatch");
