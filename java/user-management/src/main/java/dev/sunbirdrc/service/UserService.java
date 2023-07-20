@@ -295,19 +295,26 @@ public class UserService {
                 //////////////////////////////////
 
                 if (otpUtil.verifyUserMailOtp(userRepresentationOptional.get().getId(), adminOtpDTO.getOtp())) {
+                    TokenManager tokenManager = systemKeycloak.tokenManager();
+                    AccessTokenResponse accessTokenResponse = tokenManager.getAccessToken();
+                    // getting logged user details
                     UsersResource usersResource = getSystemUsersResource();
                     List<RoleRepresentation> roleRepresentationList = usersResource.get(userRepresentationOptional.get().getId()).roles().realmLevel().listEffective();
-
-                    TokenManager tokenManager = systemKeycloak.tokenManager();
-
-                    AccessTokenResponse accessTokenResponse = tokenManager.getAccessToken();
-
+                    UserDetailsDTO userDetailsDTO = UserDetailsDTO.builder()
+                            .userId(userRepresentationOptional.get().getId())
+                            .userName(userRepresentationOptional.get().getUsername())
+                            .firstName(userRepresentationOptional.get().getFirstName())
+                            .lastName(userRepresentationOptional.get().getLastName())
+                            .email(userRepresentationOptional.get().getEmail())
+                            .roles(roleRepresentationList)
+                            .build();
+                    // creating final response
                     return UserTokenDetailsDTO.builder()
                             .accessToken(accessTokenResponse.getToken())
                             .expiresIn(accessTokenResponse.getExpiresIn())
                             .tokenType(accessTokenResponse.getTokenType())
                             .scope(accessTokenResponse.getScope())
-                            .rolesList(roleRepresentationList)
+                            .user(userDetailsDTO)
                             .build();
                 } else {
                     throw new Exception("OTP mismatch");

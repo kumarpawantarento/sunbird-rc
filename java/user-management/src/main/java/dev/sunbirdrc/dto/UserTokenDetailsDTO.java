@@ -19,5 +19,5 @@ public class UserTokenDetailsDTO {
     private long refreshExpiresIn;
     private String tokenType;
     private String scope;
-    private List<RoleRepresentation> rolesList;
+    private UserDetailsDTO user;
 }

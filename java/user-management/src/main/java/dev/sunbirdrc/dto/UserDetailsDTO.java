@@ -4,6 +4,9 @@ package dev.sunbirdrc.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.keycloak.representations.idm.RoleRepresentation;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Data
@@ -19,4 +22,5 @@ public class UserDetailsDTO {
     private String instituteName;
     private String phoneNo;
     private String userId;
+    private List<RoleRepresentation> roles;
 }
