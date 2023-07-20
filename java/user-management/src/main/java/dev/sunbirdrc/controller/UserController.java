@@ -1,15 +1,14 @@
 package dev.sunbirdrc.controller;
 
 
-import dev.sunbirdrc.dto.AdminOtpDTO;
-import dev.sunbirdrc.dto.UserDetailsDTO;
-import dev.sunbirdrc.dto.UserOtpDTO;
-import dev.sunbirdrc.dto.UserTokenDetailsDTO;
+import dev.sunbirdrc.dto.*;
 import dev.sunbirdrc.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping(path = "/api/v1")
@@ -19,13 +18,8 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<UserTokenDetailsDTO> loginUser(@RequestBody UserDetailsDTO userDTO) {
-        UserTokenDetailsDTO keycloakTokenDetailsDTO = null;
-        try {
-            keycloakTokenDetailsDTO = userService.loginAndGenerateKeycloakToken(userDTO);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public ResponseEntity<UserTokenDetailsDTO> loginUser(@Valid @RequestBody UserLoginDTO userLoginDTO) {
+        UserTokenDetailsDTO keycloakTokenDetailsDTO = userService.loginAndGenerateKeycloakToken(userLoginDTO);
 
         return new ResponseEntity<>(keycloakTokenDetailsDTO, HttpStatus.OK);
     }
@@ -42,7 +36,7 @@ public class UserController {
     }
 
     @PostMapping("/verifyAndUpdate/otp")
-    public ResponseEntity<String> verifyUserMailOTP(@RequestBody UserOtpDTO userOtpDTO) {
+    public ResponseEntity<String> verifyUserMailOTP(@Valid @RequestBody UserOtpDTO userOtpDTO) {
         boolean verified = false;
         try {
             verified = userService.verifyMailOTP(userOtpDTO);
@@ -58,7 +52,7 @@ public class UserController {
     }
 
     @PostMapping("/admin/generateOtp")
-    public ResponseEntity<String> generateAdminOtp(@RequestBody UserDetailsDTO userDTO) {
+    public ResponseEntity<String> generateAdminOtp(@Valid @RequestBody UserDetailsDTO userDTO) {
         try {
             userService.generateAdminOtp(userDTO);
         } catch (Exception e) {
@@ -69,7 +63,7 @@ public class UserController {
     }
 
     @PostMapping("/admin/login")
-    public ResponseEntity<UserTokenDetailsDTO> loginAdminUser(@RequestBody AdminOtpDTO adminOtpDTO) {
+    public ResponseEntity<UserTokenDetailsDTO> loginAdminUser(@Valid @RequestBody AdminOtpDTO adminOtpDTO) {
         UserTokenDetailsDTO tokenDetailsDTO = null;
         try {
             tokenDetailsDTO = userService.getAdminTokenByOtp(adminOtpDTO);

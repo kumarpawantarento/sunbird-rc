@@ -9,17 +9,17 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RedisUtil {
     @Autowired
-    private RedisTemplate<String, Integer> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
-    public void putValue(String key, Integer value) {
+    public void putValue(String key, String value) {
         redisTemplate.opsForValue().set(key, value);
     }
 
-    public void putValueWithExpireTime(String key, Integer value, long timeout, TimeUnit unit) {
+    public void putValueWithExpireTime(String key, String value, long timeout, TimeUnit unit) {
         redisTemplate.opsForValue().set(key, value, timeout, unit);
     }
 
-    public Integer getValue(String key) {
+    public String getValue(String key) {
         return redisTemplate.opsForValue().get(key);
     }
 }

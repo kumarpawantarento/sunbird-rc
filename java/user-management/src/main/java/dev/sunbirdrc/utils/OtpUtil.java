@@ -27,7 +27,7 @@ public class OtpUtil {
 
         if (StringUtils.hasText(userId)) {
              otp = ThreadLocalRandom.current().nextInt(100000, 999999);
-            redisUtil.putValueWithExpireTime(userId, otp, propMapping.getOtpTtlDuration(), timeUnit);
+            redisUtil.putValueWithExpireTime(userId, String.valueOf(otp), propMapping.getOtpTtlDuration(), timeUnit);
         } else {
             throw new Exception("Invalid user id to generate OTP");
         }
@@ -40,9 +40,9 @@ public class OtpUtil {
      * @param otp
      * @return
      */
-    public boolean verifyUserMailOtp(String userId, Integer otp) {
+    public boolean verifyUserMailOtp(String userId, String otp) {
         if (!StringUtils.isEmpty(userId) && otp != null && !otp.equals(0)) {
-            Integer cachedOtp = redisUtil.getValue(userId);
+            String cachedOtp = redisUtil.getValue(userId);
 
             return otp.equals(cachedOtp);
         }

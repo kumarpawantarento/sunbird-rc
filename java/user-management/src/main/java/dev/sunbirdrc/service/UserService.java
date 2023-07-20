@@ -3,11 +3,9 @@ package dev.sunbirdrc.service;
 
 import dev.sunbirdrc.config.KeycloakConfig;
 import dev.sunbirdrc.config.PropertiesValueMapper;
-import dev.sunbirdrc.dto.AdminOtpDTO;
-import dev.sunbirdrc.dto.UserDetailsDTO;
-import dev.sunbirdrc.dto.UserOtpDTO;
-import dev.sunbirdrc.dto.UserTokenDetailsDTO;
+import dev.sunbirdrc.dto.*;
 import dev.sunbirdrc.entity.UserDetails;
+import dev.sunbirdrc.exception.*;
 import dev.sunbirdrc.repository.UserDetailsRepository;
 import dev.sunbirdrc.utils.OtpUtil;
 import dev.sunbirdrc.utils.UserConstant;
@@ -89,10 +87,13 @@ public class UserService {
         return false;
     }
 
-    public UserTokenDetailsDTO loginAndGenerateKeycloakToken(UserDetailsDTO userDTO) throws Exception {
-        if (userDTO != null && StringUtils.hasText(userDTO.getUserName()) && StringUtils.hasText(userDTO.getPassword())) {
+    public UserTokenDetailsDTO loginAndGenerateKeycloakToken(UserLoginDTO userLoginDTO) {
+        if (userLoginDTO != null && StringUtils.hasText(userLoginDTO.getUsername())
+                && StringUtils.hasText(userLoginDTO.getPassword())) {
+
             try {
-                TokenManager tokenManager = keycloakConfig.getUserKeycloak(userDTO.getUserName(), userDTO.getPassword()).tokenManager();
+                TokenManager tokenManager = keycloakConfig
+                        .getUserKeycloak(userLoginDTO.getUsername(), userLoginDTO.getPassword()).tokenManager();
 
                 AccessTokenResponse accessTokenResponse = tokenManager.getAccessToken();
 
@@ -105,10 +106,12 @@ public class UserService {
                         .scope(accessTokenResponse.getScope())
                         .build();
             } catch (NotAuthorizedException e) {
-                throw new Exception("You have entered an invalid username or password");
+                throw new AuthorizationException("Credentials have authorization issue");
+            } catch (Exception e) {
+                throw new KeycloakUserException("Unable to get user detils - Update user");
             }
         } else {
-            throw new Exception("User credentials are invalid");
+            throw new UserCredentialsException("User credentials are invalid");
         }
     }
 
@@ -141,9 +144,11 @@ public class UserService {
                     status = true;
                 } else {
                     LOGGER.error("Unable to create user, systemKeycloak response - " + response.getStatusInfo());
+                    throw new KeycloakUserException("Unable to create user in keycloak directory: " + response.getStatusInfo());
                 }
             } catch (Exception e) {
                 LOGGER.error("Unable to create user in systemKeycloak", e.getMessage());
+                throw new KeycloakUserException("Unable to create user - error message: " + e.getMessage());
             }
         }
         return status;
@@ -179,7 +184,7 @@ public class UserService {
                 }
             }
         } else {
-            throw new Exception("Invalid user details or username, while saving user in claim service");
+            throw new UserNotFoundException("Invalid user details or username, while saving user in claim service");
         }
     }
 
@@ -263,7 +268,7 @@ public class UserService {
 
                         mailService.sendOtpMail(userDetails);
                     } else {
-                        throw new Exception("User doesn't have role admin");
+                        throw new OtpException("User doesn't have role admin");
                     }
                 }
             }
@@ -282,7 +287,7 @@ public class UserService {
                         .findFirst();
 
                 if (!userRepresentationOptional.isPresent()) {
-                    throw new Exception("Username missing while verifying OTP");
+                    throw new OtpException("Username missing while verifying OTP");
                 }
                 ///////////////////////////////////////
 
@@ -305,13 +310,13 @@ public class UserService {
                             .scope(accessTokenResponse.getScope())
                             .build();
                 } else {
-                    throw new Exception("OTP mismatch");
+                    throw new OtpException("OTP mismatch");
                 }
             } else {
-                throw new Exception("Unable to get user details");
+                throw new OtpException("Unable to get user details");
             }
         }else {
-            throw new Exception("OTP details missing");
+            throw new OtpException("OTP details missing");
         }
     }
 
