@@ -1,9 +1,6 @@
 package dev.sunbirdrc.config;
 
-import dev.sunbirdrc.exception.AuthorizationException;
-import dev.sunbirdrc.exception.KeycloakUserException;
-import dev.sunbirdrc.exception.OtpException;
-import dev.sunbirdrc.exception.UserNotFoundException;
+import dev.sunbirdrc.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -54,6 +51,12 @@ public class ExceptionHandlerConfig {
 
     @ExceptionHandler(AuthorizationException.class)
     public ResponseEntity<Map<String, List<String>>> handleNotFoundException(AuthorizationException exception) {
+        List<String> errors = Collections.singletonList(exception.getMessage());
+        return new ResponseEntity<>(getErrorsMap(errors), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidInputDataException.class)
+    public ResponseEntity<Map<String, List<String>>> handleNotFoundException(InvalidInputDataException exception) {
         List<String> errors = Collections.singletonList(exception.getMessage());
         return new ResponseEntity<>(getErrorsMap(errors), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }

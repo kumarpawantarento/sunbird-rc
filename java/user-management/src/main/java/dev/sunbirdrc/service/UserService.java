@@ -4,8 +4,10 @@ package dev.sunbirdrc.service;
 import dev.sunbirdrc.config.KeycloakConfig;
 import dev.sunbirdrc.config.PropertiesValueMapper;
 import dev.sunbirdrc.dto.*;
+import dev.sunbirdrc.entity.UserCredential;
 import dev.sunbirdrc.entity.UserDetails;
 import dev.sunbirdrc.exception.*;
+import dev.sunbirdrc.repository.UserCredentialRepository;
 import dev.sunbirdrc.repository.UserDetailsRepository;
 import dev.sunbirdrc.utils.OtpUtil;
 import dev.sunbirdrc.utils.UserConstant;
@@ -23,6 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -54,6 +60,12 @@ public class UserService {
 
     @Autowired
     private UserDetailsRepository userDetailsRepository;
+
+    @Autowired
+    private UserCredentialRepository userCredentialRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     public UsersResource getSystemUsersResource(){
@@ -235,9 +247,9 @@ public class UserService {
         return false;
     }
 
-    public void generateAdminOtp(UserDetailsDTO userDTO) throws Exception {
-        if (userDTO != null && !StringUtils.isEmpty(userDTO.getUserName())) {
-            String username = userDTO.getUserName();
+    public void generateAdminOtp(AdminDTO adminDTO) throws Exception {
+        if (adminDTO != null && !StringUtils.isEmpty(adminDTO.getUsername())) {
+            String username = adminDTO.getUsername();
 
             List<UserRepresentation> userRepresentationList = getUserDetails(username);
 
@@ -275,9 +287,9 @@ public class UserService {
         }
     }
 
-    public UserTokenDetailsDTO getAdminTokenByOtp(AdminOtpDTO adminOtpDTO) throws Exception {
-        if (adminOtpDTO != null && !StringUtils.isEmpty(adminOtpDTO.getEmail())) {
-            String username = adminOtpDTO.getEmail();
+    public UserTokenDetailsDTO getAdminTokenByOtp(AdminLoginDTO adminLoginDTO) throws Exception {
+        if (adminLoginDTO != null && !StringUtils.isEmpty(adminLoginDTO.getEmail())) {
+            String username = adminLoginDTO.getEmail();
 
             List<UserRepresentation> userRepresentationList = getUserDetails(username);
 
@@ -299,7 +311,7 @@ public class UserService {
 
                 //////////////////////////////////
 
-                if (otpUtil.verifyUserMailOtp(userRepresentationOptional.get().getId(), adminOtpDTO.getOtp())) {
+                if (otpUtil.verifyUserMailOtp(userRepresentationOptional.get().getId(), adminLoginDTO.getOtp())) {
                     TokenManager tokenManager = systemKeycloak.tokenManager();
                     AccessTokenResponse accessTokenResponse = tokenManager.getAccessToken();
 
@@ -317,6 +329,202 @@ public class UserService {
             }
         }else {
             throw new OtpException("OTP details missing");
+        }
+    }
+
+
+
+    public void addBulkUser(List<CustomUserDTO> bulkUserDTOList){
+
+        if (bulkUserDTOList == null || bulkUserDTOList.isEmpty()) {
+            throw new InvalidInputDataException("Invalid user data to process");
+        } else if (bulkUserDTOList.size() > valueMapper.getBulkUserSizeLimit()) {
+            throw new InvalidInputDataException("User size limit crossed - Bulk user allowed size: " + valueMapper.getBulkUserSizeLimit());
+        } else {
+            processBulkUserData(bulkUserDTOList);
+        }
+    }
+
+    @Async
+    public void processBulkUserData(List<CustomUserDTO> bulkUserDTOList) {
+        for (CustomUserDTO customUserDTO : bulkUserDTOList) {
+
+            UserRepresentation userRepresentation = new UserRepresentation();
+            userRepresentation.setUsername(customUserDTO.getUsername());
+            userRepresentation.setFirstName(customUserDTO.getFirstName());
+            userRepresentation.setLastName(customUserDTO.getLastName());
+            userRepresentation.setEmail(customUserDTO.getEmail());
+//            userRepresentation.setRealmRoles(Collections.singletonList(customUserDTO.getRoleName()));
+            userRepresentation.setCredentials(Collections.singletonList(createPasswordCredentials(customUserDTO.getPassword())));
+            userRepresentation.setEnabled(true);
+
+            try {
+                Response response = getSystemUsersResource().create(userRepresentation);
+
+                if (response.getStatus() == HttpStatus.CREATED.value()) {
+                    assignCustomUserRole(customUserDTO);
+                    persistUserDetailsWithCredentials(customUserDTO);
+                } else {
+                    LOGGER.error("Unable to create custom user, systemKeycloak response - " + response.getStatusInfo());
+                    throw new KeycloakUserException("Unable to create custom user in keycloak directory: " + response.getStatusInfo());
+                }
+            } catch (Exception e) {
+                LOGGER.error("Unable to create custom user in systemKeycloak", e.getMessage());
+                throw new KeycloakUserException("Unable to create custom user - error message: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * @param customUserDTO
+     */
+    private void assignCustomUserRole(CustomUserDTO customUserDTO) {
+        List<UserRepresentation> userRepresentationList = getUserDetails(customUserDTO.getUsername());
+
+        if (userRepresentationList != null && !userRepresentationList.isEmpty()) {
+            Optional<UserRepresentation> userRepresentationOptional = userRepresentationList.stream().findFirst();
+
+            if (userRepresentationOptional.isPresent()) {
+                List<RoleRepresentation> roleToAdd = new LinkedList<>();
+
+                UserResource user = systemKeycloak
+                        .realm(valueMapper.getRealm())
+                        .users()
+                        .get(userRepresentationOptional.get().getId());
+
+                roleToAdd.add(systemKeycloak
+                        .realm(valueMapper.getRealm())
+                        .roles()
+                        .get(customUserDTO.getRoleName())
+                        .toRepresentation()
+                );
+                user.roles().realmLevel().add(roleToAdd);
+            }
+        }
+    }
+
+
+    /**
+     * Password is being saved as plain text - need to refactor.
+     *
+     * @param customUserDTO
+     * @throws Exception
+     */
+    public void persistUserDetailsWithCredentials(@NonNull CustomUserDTO customUserDTO) throws Exception {
+        UserCredential userCredential = UserCredential.builder()
+                .userName(customUserDTO.getUsername())
+                .password(customUserDTO.getPassword())
+                .build();
+
+        userCredentialRepository.save(userCredential);
+        mailService.sendUserCreationNotification(customUserDTO);
+    }
+
+    /**
+     * @param adminDTO
+     * @throws Exception
+     */
+    public void generateCustomUserOtp(CustomUsernameDTO customUsernameDTO) throws Exception {
+        if (customUsernameDTO != null && !StringUtils.isEmpty(customUsernameDTO.getUsername())) {
+            String username = customUsernameDTO.getUsername();
+
+            List<UserRepresentation> userRepresentationList = getUserDetails(username);
+
+            if (userRepresentationList != null && !userRepresentationList.isEmpty()) {
+                Optional<UserRepresentation> userRepresentationOptional = userRepresentationList.stream()
+                        .filter(userRepresentation -> username.equalsIgnoreCase(userRepresentation.getUsername()))
+                        .findFirst();
+
+                if (userRepresentationOptional.isPresent()) {
+                    UserRepresentation userRepresentation = userRepresentationOptional.get();
+
+                    UserDetails userDetails = UserDetails.builder()
+                            .userId(userRepresentation.getId())
+                            .userName(userRepresentation.getUsername())
+                            .firstName(userRepresentation.getFirstName())
+                            .lastName(userRepresentation.getLastName())
+                            .email(userRepresentation.getEmail())
+                            .enabled(userRepresentation.isEnabled())
+                            .build();
+
+                    mailService.sendOtpMail(userDetails);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param customUserLoginDTO
+     * @return
+     * @throws Exception
+     */
+    public UserTokenDetailsDTO getCustomUserTokenByOtp(CustomUserLoginDTO customUserLoginDTO) throws Exception {
+        if (customUserLoginDTO != null && !StringUtils.isEmpty(customUserLoginDTO.getEmail())) {
+            String username = customUserLoginDTO.getEmail();
+
+            List<UserRepresentation> userRepresentationList = getUserDetails(username);
+
+            if (userRepresentationList != null && !userRepresentationList.isEmpty()) {
+                Optional<UserRepresentation> userRepresentationOptional = userRepresentationList.stream()
+                        .filter(userRepresentation -> username.equalsIgnoreCase(userRepresentation.getUsername()))
+                        .findFirst();
+
+                if (!userRepresentationOptional.isPresent()) {
+                    throw new OtpException("Username missing while verifying OTP");
+                }
+
+                if (otpUtil.verifyUserMailOtp(userRepresentationOptional.get().getId(), customUserLoginDTO.getOtp())) {
+                    try {
+                        List<RoleRepresentation> roleRepresentationList = getSystemUsersResource()
+                                .get(userRepresentationOptional.get().getId())
+                                .roles().realmLevel().listEffective();
+
+                        TokenManager tokenManager = keycloakConfig
+                                .getUserKeycloak(customUserLoginDTO.getEmail(),
+                                        getCustomUserCredentail(customUserLoginDTO.getEmail()))
+                                .tokenManager();
+
+                        AccessTokenResponse accessTokenResponse = tokenManager.getAccessToken();
+
+                        return UserTokenDetailsDTO.builder()
+                                .accessToken(accessTokenResponse.getToken())
+                                .expiresIn(accessTokenResponse.getExpiresIn())
+                                .refreshToken(accessTokenResponse.getRefreshToken())
+                                .refreshExpiresIn(accessTokenResponse.getRefreshExpiresIn())
+                                .tokenType(accessTokenResponse.getTokenType())
+                                .scope(accessTokenResponse.getScope())
+                                .userRepresentation(userRepresentationOptional.get())
+                                .roleRepresentationList(roleRepresentationList)
+                                .build();
+                    } catch (NotAuthorizedException e) {
+                        throw new AuthorizationException("Credentials have authorization issue");
+                    } catch (Exception e) {
+                        throw new KeycloakUserException("Unable to get user detils - Update user");
+                    }
+                } else {
+                    throw new OtpException("OTP mismatch");
+                }
+            } else {
+                throw new OtpException("Unable to get user details");
+            }
+        }else {
+            throw new OtpException("OTP details missing");
+        }
+    }
+
+
+    /**
+     * Password is being saved as plain text - Need to refactor in future
+     * @param username
+     * @return
+     */
+    private @NonNull String getCustomUserCredentail(@NonNull String username) {
+        Optional<UserCredential> userCredentialOptional = userCredentialRepository.findByUserName(username);
+
+        if (userCredentialOptional.isPresent()) {
+            return userCredentialOptional.get().getPassword();
+        } else {
+            throw new UserNotFoundException("User is not configured properly in User management system");
         }
     }
 

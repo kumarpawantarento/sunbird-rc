@@ -4,6 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -16,4 +20,6 @@ public class UserTokenDetailsDTO {
     private long refreshExpiresIn;
     private String tokenType;
     private String scope;
+    UserRepresentation userRepresentation;
+    List<RoleRepresentation> roleRepresentationList;
 }

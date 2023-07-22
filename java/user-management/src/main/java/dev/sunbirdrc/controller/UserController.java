@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/v1")
@@ -25,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createUser(@RequestBody UserDetailsDTO userDTO) {
+    public ResponseEntity<String> createUser(@Valid @RequestBody UserDetailsDTO userDTO) {
         boolean status = userService.addUser(userDTO);
 
         if (status) {
@@ -52,9 +53,9 @@ public class UserController {
     }
 
     @PostMapping("/admin/generateOtp")
-    public ResponseEntity<String> generateAdminOtp(@Valid @RequestBody UserDetailsDTO userDTO) {
+    public ResponseEntity<String> generateAdminOtp(@Valid @RequestBody AdminDTO adminDTO) {
         try {
-            userService.generateAdminOtp(userDTO);
+            userService.generateAdminOtp(adminDTO);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -63,10 +64,10 @@ public class UserController {
     }
 
     @PostMapping("/admin/login")
-    public ResponseEntity<UserTokenDetailsDTO> loginAdminUser(@Valid @RequestBody AdminOtpDTO adminOtpDTO) {
+    public ResponseEntity<UserTokenDetailsDTO> loginAdminUser(@Valid @RequestBody AdminLoginDTO adminLoginDTO) {
         UserTokenDetailsDTO tokenDetailsDTO = null;
         try {
-            tokenDetailsDTO = userService.getAdminTokenByOtp(adminOtpDTO);
+            tokenDetailsDTO = userService.getAdminTokenByOtp(adminLoginDTO);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -81,4 +82,33 @@ public class UserController {
         return new ResponseEntity<>("Role base access", HttpStatus.OK);
     }
 
+    @PostMapping("/createBulkUser")
+    public ResponseEntity<String> createBulkUser(@Valid @RequestBody List<CustomUserDTO> customUserDTOList) {
+        userService.addBulkUser(customUserDTOList);
+
+        return new ResponseEntity<>("Bulk user creation is being processed", HttpStatus.CREATED);
+    }
+
+    @PostMapping("/user/generateOtp")
+    public ResponseEntity<String> generateUserOtp(@Valid @RequestBody CustomUsernameDTO customUsernameDTO) {
+        try {
+            userService.generateCustomUserOtp(customUsernameDTO);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return new ResponseEntity<>("Sending OTP to user mail", HttpStatus.OK);
+    }
+
+    @PostMapping("/user/login")
+    public ResponseEntity<UserTokenDetailsDTO> loginCustomUser(@Valid @RequestBody CustomUserLoginDTO customUserLoginDTO) {
+        UserTokenDetailsDTO tokenDetailsDTO = null;
+        try {
+            tokenDetailsDTO = userService.getCustomUserTokenByOtp(customUserLoginDTO);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return new ResponseEntity<>(tokenDetailsDTO, HttpStatus.OK);
+    }
 }

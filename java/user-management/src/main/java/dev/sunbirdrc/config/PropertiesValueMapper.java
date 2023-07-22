@@ -33,4 +33,14 @@ public class PropertiesValueMapper {
     private Long otpTtlDuration;
     @Value("${otp.time.unit}")
     private String otpTimeUnit;
+    @Value("${custom.user.login.url}")
+    private String customUserLoginUrl;
+    @Value("${bulk.user.size.limit}")
+    private Integer bulkUserSizeLimit;
+    @Value("${custom.user.creation.subject}")
+    private String customUserCreationSubject;
+    @Value("${custom.user.creation.personal.name}")
+    private String customUserCreationPersonalName;
+    @Value("${custom.user.creation.from.address}")
+    private String customUserCreationFromAddress;
 }

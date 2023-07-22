@@ -1,6 +1,7 @@
 package dev.sunbirdrc.service;
 
 import dev.sunbirdrc.config.PropertiesValueMapper;
+import dev.sunbirdrc.dto.CustomUserDTO;
 import dev.sunbirdrc.entity.UserDetails;
 import dev.sunbirdrc.utils.OtpUtil;
 import freemarker.template.Configuration;
@@ -93,6 +94,49 @@ public class MailService {
         } catch (TemplateException e) {
             logger.error("Error while creating mail template for request info");
             throw new Exception("Error while creating mail template for request info");
+        }
+
+        return processedTemplateString;
+    }
+
+    @Async
+    public void sendUserCreationNotification(CustomUserDTO customUserDTO) throws Exception {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
+
+            mimeMessageHelper.setSubject(propMapping.getCustomUserCreationSubject());
+            mimeMessageHelper.setFrom(new InternetAddress(propMapping.getCustomUserCreationFromAddress(),
+                    propMapping.getCustomUserCreationPersonalName()));
+            mimeMessageHelper.setTo(customUserDTO.getEmail());
+            mimeMessageHelper.setText(generateNotificationMailContent(customUserDTO), true);
+
+            mailSender.send(mimeMessageHelper.getMimeMessage());
+        } catch (Exception e) {
+            logger.error("Exception while sending user creation mail notification: ", e);
+            throw new Exception("Exception while composing and sending user creation mail notification");
+        }
+    }
+
+    private String generateNotificationMailContent(CustomUserDTO customUserDTO) throws Exception {
+        String processedTemplateString = null;
+
+
+        Map<String, Object> mailMap = new HashMap<>();
+        mailMap.put("userFirstName", customUserDTO.getFirstName());
+        mailMap.put("userLastName", customUserDTO.getLastName());
+        mailMap.put("loginLInk", propMapping.getCustomUserLoginUrl());
+        mailMap.put("signature", "UPSMF");
+
+        freeMarkerConfiguration.setClassForTemplateLoading(this.getClass(), "/templates/");
+        Template template = freeMarkerConfiguration.getTemplate("user-creation-notification-mail.ftl");
+
+        try {
+            processedTemplateString = FreeMarkerTemplateUtils.processTemplateIntoString(template, mailMap);
+        } catch (TemplateException e) {
+            logger.error("Error while creating notification mail template for request info");
+            throw new Exception("Error while creating notification mail template for request info");
         }
 
         return processedTemplateString;

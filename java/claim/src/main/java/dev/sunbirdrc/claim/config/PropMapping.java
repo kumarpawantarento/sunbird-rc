@@ -23,4 +23,6 @@ public class PropMapping {
     private String password;
     @Value("${keycloak.token.url}")
     private String keyCloakTokenUrl;
+    @Value("${simple.mail.message.from}")
+    private String simpleMailMessageFrom;
 }
