@@ -43,4 +43,8 @@ public class PropertiesValueMapper {
     private String customUserCreationPersonalName;
     @Value("${custom.user.creation.from.address}")
     private String customUserCreationFromAddress;
+    @Value("${custom.redis.host}")
+    private String customRedisHost;
+    @Value("${custom.redis.port}")
+    private Integer customRedisPort;
 }
