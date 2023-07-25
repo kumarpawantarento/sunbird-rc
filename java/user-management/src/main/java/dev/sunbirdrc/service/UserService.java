@@ -27,12 +27,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -525,6 +525,97 @@ public class UserService {
             return userCredentialOptional.get().getPassword();
         } else {
             throw new UserNotFoundException("User is not configured properly in User management system");
+        }
+    }
+
+    public void deleteBulkUSer(List<CustomUserDeleteDTO> customUserDeleteDTOList) {
+        if (customUserDeleteDTOList != null && !customUserDeleteDTOList.isEmpty()) {
+            for (CustomUserDeleteDTO customUserDeleteDTO : customUserDeleteDTOList) {
+                deleteUser(customUserDeleteDTO.getEmail());
+            }
+        }
+    }
+
+    public void deleteUser(String username){
+        List<UserRepresentation> userRepresentationList = getUserDetails(username);
+
+        if (userRepresentationList != null && !userRepresentationList.isEmpty()) {
+            Optional<UserRepresentation> userRepresentationOptional = userRepresentationList.stream()
+                    .filter(userRepresentation -> username.equalsIgnoreCase(userRepresentation.getUsername()))
+                    .findFirst();
+
+            if (!userRepresentationOptional.isPresent()) {
+                throw new UserNotFoundException("Unable to find user in keycloak " + username);
+            }
+
+            settleUserDeletionInDB(username);
+
+            UsersResource usersResource = getSystemUsersResource();
+            usersResource.get(userRepresentationOptional.get().getId()).remove();
+        }
+
+
+    }
+
+    private void settleUserDeletionInDB(@NonNull String username) {
+        Optional<UserCredential> userCredentialOptional = userCredentialRepository.findByUserName(username);
+
+        if (!userCredentialOptional.isPresent()) {
+            throw new UserNotFoundException("Unable to fine user in User Management service " );
+        } else {
+            userCredentialRepository.delete(userCredentialOptional.get());
+        }
+    }
+
+    /**
+     * @param customUserUpdateDTO
+     */
+    public void updateUser(CustomUserUpdateDTO customUserUpdateDTO){
+        List<UserRepresentation> userRepresentationList = getUserDetails(customUserUpdateDTO.getUsername());
+
+        if (userRepresentationList != null && !userRepresentationList.isEmpty()) {
+            Optional<UserRepresentation> userRepresentationOptional = userRepresentationList.stream()
+                    .filter(userRepresentation -> customUserUpdateDTO.getUsername().equalsIgnoreCase(userRepresentation.getUsername()))
+                    .findFirst();
+
+            if (!userRepresentationOptional.isPresent()) {
+                throw new UserNotFoundException("Unable to find user in keycloak " + customUserUpdateDTO.getUsername());
+            }
+
+            UserRepresentation user = new UserRepresentation();
+            user.setFirstName(customUserUpdateDTO.getFirstName());
+            user.setLastName(customUserUpdateDTO.getLastName());
+
+            UserResource userResource = getSystemUsersResource().get(userRepresentationOptional.get().getId());
+            userResource.update(user);
+
+            assignRole(customUserUpdateDTO.getRoleNames(), userRepresentationOptional.get().getId());
+        }
+    }
+
+    private void assignRole(List<String> roleNames, String userId) {
+        if (roleNames != null && !roleNames.isEmpty()) {
+            List<RoleRepresentation> roleToAdd = new LinkedList<>();
+
+            for (String roleName : roleNames) {
+                try {
+
+                    RoleRepresentation roleRepresentation = systemKeycloak.realm(valueMapper.getRealm())
+                            .roles()
+                            .get(roleName)
+                            .toRepresentation();
+
+                    roleToAdd.add(roleRepresentation);
+                } catch (NotFoundException exception) {
+                    throw new RoleNotFoundException("Role name list is not valid");
+                }
+            }
+
+            UserResource user = getSystemUsersResource().get(userId);
+
+            List<RoleRepresentation> roleRepresentationList = user.roles().realmLevel().listEffective();
+            user.roles().realmLevel().remove(roleRepresentationList);
+            user.roles().realmLevel().add(roleToAdd);
         }
     }
 

@@ -60,6 +60,11 @@ public class ExceptionHandlerConfig {
         List<String> errors = Collections.singletonList(exception.getMessage());
         return new ResponseEntity<>(getErrorsMap(errors), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<Map<String, List<String>>> handleNotFoundException(RoleNotFoundException exception) {
+        List<String> errors = Collections.singletonList(exception.getMessage());
+        return new ResponseEntity<>(getErrorsMap(errors), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
 
 
     private Map<String, List<String>> getErrorsMap(List<String> errors) {

@@ -111,4 +111,19 @@ public class UserController {
 
         return new ResponseEntity<>(tokenDetailsDTO, HttpStatus.OK);
     }
+
+    @PostMapping(path = "/user/delete")
+    public ResponseEntity<String> deleteUser(@Valid @RequestBody List<CustomUserDeleteDTO> customUserDeleteDTOList){
+        userService.deleteBulkUSer(customUserDeleteDTOList);
+
+        return new ResponseEntity<>("Successfully delete the user", HttpStatus.OK);
+    }
+
+    @PostMapping("/user/update")
+    public ResponseEntity<String> updateUser(@Valid @RequestBody CustomUserUpdateDTO customUserUpdateDTO) {
+        userService.updateUser(customUserUpdateDTO);
+
+        return new ResponseEntity<>("Successfully updated user", HttpStatus.OK);
+    }
+
 }
