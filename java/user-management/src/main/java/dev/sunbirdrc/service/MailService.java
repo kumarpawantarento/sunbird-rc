@@ -100,7 +100,7 @@ public class MailService {
     }
 
     @Async
-    public void sendUserCreationNotification(CustomUserDTO customUserDTO) throws Exception {
+    public void sendUserCreationNotification(CustomUserDTO customUserDTO) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
 
@@ -115,7 +115,7 @@ public class MailService {
             mailSender.send(mimeMessageHelper.getMimeMessage());
         } catch (Exception e) {
             logger.error("Exception while sending user creation mail notification: ", e);
-            throw new Exception("Exception while composing and sending user creation mail notification");
+//            throw new Exception("Exception while composing and sending user creation mail notification");
         }
     }
 

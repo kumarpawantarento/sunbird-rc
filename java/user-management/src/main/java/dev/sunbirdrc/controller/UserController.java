@@ -3,12 +3,25 @@ package dev.sunbirdrc.controller;
 
 import dev.sunbirdrc.dto.*;
 import dev.sunbirdrc.service.UserService;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import javax.validation.Valid;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
+import java.security.Security;
 import java.util.List;
 
 @RestController
@@ -25,9 +38,9 @@ public class UserController {
         return new ResponseEntity<>(keycloakTokenDetailsDTO, HttpStatus.OK);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<String> createUser(@Valid @RequestBody UserDetailsDTO userDTO) {
-        boolean status = userService.addUser(userDTO);
+    @PostMapping("/registerUser")
+    public ResponseEntity<String> registerUser(@Valid @RequestBody UserDetailsDTO userDTO) {
+        boolean status = userService.registerUser(userDTO);
 
         if (status) {
             return new ResponseEntity<>("Successfully added user", HttpStatus.CREATED);
@@ -82,11 +95,11 @@ public class UserController {
         return new ResponseEntity<>("Role base access", HttpStatus.OK);
     }
 
-    @PostMapping("/createBulkUser")
-    public ResponseEntity<String> createBulkUser(@Valid @RequestBody List<CustomUserDTO> customUserDTOList) {
-        userService.addBulkUser(customUserDTOList);
+    @PostMapping("/keycloak/createBulkUser")
+    public ResponseEntity<BulkCustomUserResponseDTO> createBulkUser(@Valid @RequestBody List<CustomUserDTO> customUserDTOList) {
+        BulkCustomUserResponseDTO bulkCustomUserResponseDTO = userService.addBulkUser(customUserDTOList);
 
-        return new ResponseEntity<>("Bulk user creation is being processed", HttpStatus.CREATED);
+        return new ResponseEntity<>(bulkCustomUserResponseDTO, HttpStatus.CREATED);
     }
 
     @PostMapping("/user/generateOtp")
@@ -112,18 +125,25 @@ public class UserController {
         return new ResponseEntity<>(tokenDetailsDTO, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/user/delete")
+    @PostMapping(path = "/keycloak/user/delete")
     public ResponseEntity<String> deleteUser(@Valid @RequestBody List<CustomUserDeleteDTO> customUserDeleteDTOList){
         userService.deleteBulkUSer(customUserDeleteDTOList);
 
         return new ResponseEntity<>("Successfully delete the user", HttpStatus.OK);
     }
 
-    @PostMapping("/user/update")
+    @PostMapping("keycloak/user/update")
     public ResponseEntity<String> updateUser(@Valid @RequestBody CustomUserUpdateDTO customUserUpdateDTO) {
         userService.updateUser(customUserUpdateDTO);
 
         return new ResponseEntity<>("Successfully updated user", HttpStatus.OK);
+    }
+
+    @PostMapping("/keycloak/user/create")
+    public ResponseEntity<CustomUserResponseDTO> createCustomUser(@Valid @RequestBody CustomUserDTO customUserDTO) {
+        CustomUserResponseDTO customUserResponseDTO = userService.createCustomUser(customUserDTO);
+
+        return new ResponseEntity<>(customUserResponseDTO, HttpStatus.OK);
     }
 
 }

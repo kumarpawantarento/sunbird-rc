@@ -47,4 +47,8 @@ public class PropertiesValueMapper {
     private String customRedisHost;
     @Value("${custom.redis.port}")
     private Integer customRedisPort;
+    @Value("${custom.user.credential.secret.key}")
+    private String customUserCredentialSecretKey;
+    @Value("${custom.user.cipher.provider.algorithm}")
+    private String customUserCipherProviderAlgorithm;
 }

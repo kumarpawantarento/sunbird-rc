@@ -9,6 +9,7 @@ import dev.sunbirdrc.entity.UserDetails;
 import dev.sunbirdrc.exception.*;
 import dev.sunbirdrc.repository.UserCredentialRepository;
 import dev.sunbirdrc.repository.UserDetailsRepository;
+import dev.sunbirdrc.utils.CipherEncoder;
 import dev.sunbirdrc.utils.OtpUtil;
 import dev.sunbirdrc.utils.UserConstant;
 import org.keycloak.admin.client.Keycloak;
@@ -67,6 +68,8 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private CipherEncoder cipherEncoder;
 
     public UsersResource getSystemUsersResource(){
         return systemKeycloak.realm(valueMapper.getRealm()).users();
@@ -127,7 +130,7 @@ public class UserService {
         }
     }
 
-    public boolean addUser(UserDetailsDTO userDTO){
+    public boolean registerUser(UserDetailsDTO userDTO){
         boolean status = false;
 
         if (userDTO != null && !StringUtils.isEmpty(userDTO.getUserName())) {
@@ -334,43 +337,91 @@ public class UserService {
 
 
 
-    public void addBulkUser(List<CustomUserDTO> bulkUserDTOList){
+    public BulkCustomUserResponseDTO addBulkUser(List<CustomUserDTO> bulkUserDTOList){
 
         if (bulkUserDTOList == null || bulkUserDTOList.isEmpty()) {
             throw new InvalidInputDataException("Invalid user data to process");
         } else if (bulkUserDTOList.size() > valueMapper.getBulkUserSizeLimit()) {
             throw new InvalidInputDataException("User size limit crossed - Bulk user allowed size: " + valueMapper.getBulkUserSizeLimit());
         } else {
-            processBulkUserData(bulkUserDTOList);
+            return processBulkUserData(bulkUserDTOList);
         }
     }
 
-    @Async
-    public void processBulkUserData(List<CustomUserDTO> bulkUserDTOList) {
+    public BulkCustomUserResponseDTO processBulkUserData(List<CustomUserDTO> bulkUserDTOList) {
+        BulkCustomUserResponseDTO bulkCustomUserResponseDTO = new BulkCustomUserResponseDTO();
+        List<CustomUserResponseDTO> succeedUserList = new ArrayList<>();
+        List<CustomUserResponseDTO> failedUserList = new ArrayList<>();
+
         for (CustomUserDTO customUserDTO : bulkUserDTOList) {
+            CustomUserResponseDTO customUserResponseDTO = CustomUserResponseDTO.builder()
+                    .email(customUserDTO.getEmail())
+                    .firstName(customUserDTO.getFirstName())
+                    .lastName(customUserDTO.getLastName())
+                    .roleName(customUserDTO.getRoleName())
+                    .build();
 
-            UserRepresentation userRepresentation = new UserRepresentation();
-            userRepresentation.setUsername(customUserDTO.getUsername());
-            userRepresentation.setFirstName(customUserDTO.getFirstName());
-            userRepresentation.setLastName(customUserDTO.getLastName());
-            userRepresentation.setEmail(customUserDTO.getEmail());
-//            userRepresentation.setRealmRoles(Collections.singletonList(customUserDTO.getRoleName()));
-            userRepresentation.setCredentials(Collections.singletonList(createPasswordCredentials(customUserDTO.getPassword())));
-            userRepresentation.setEnabled(true);
+            if (isUserExist(customUserDTO.getUsername())) {
+                LOGGER.error(">>> User is already exist in user management");
+                customUserResponseDTO.setStatus("Faild to create user - User is already exist in user management DB");
+                failedUserList.add(customUserResponseDTO);
+            } else {
+                UserRepresentation userRepresentation = new UserRepresentation();
+                userRepresentation.setUsername(customUserDTO.getUsername());
+                userRepresentation.setFirstName(customUserDTO.getFirstName());
+                userRepresentation.setLastName(customUserDTO.getLastName());
+                userRepresentation.setEmail(customUserDTO.getEmail());
+                userRepresentation.setCredentials(Collections.singletonList(createPasswordCredentials(customUserDTO.getPassword())));
+                userRepresentation.setEnabled(true);
 
-            try {
-                Response response = getSystemUsersResource().create(userRepresentation);
+                try {
+                    Response response = getSystemUsersResource().create(userRepresentation);
 
-                if (response.getStatus() == HttpStatus.CREATED.value()) {
-                    assignCustomUserRole(customUserDTO);
-                    persistUserDetailsWithCredentials(customUserDTO);
-                } else {
-                    LOGGER.error("Unable to create custom user, systemKeycloak response - " + response.getStatusInfo());
-                    throw new KeycloakUserException("Unable to create custom user in keycloak directory: " + response.getStatusInfo());
+                    if (response.getStatus() == HttpStatus.CREATED.value()) {
+                        String userId = assignCustomUserRole(customUserDTO);
+                        persistUserDetailsWithCredentials(customUserDTO);
+
+                        customUserResponseDTO.setUserId(userId);
+                        customUserResponseDTO.setStatus("User has been created successfully - mail in progress");
+                        succeedUserList.add(customUserResponseDTO);
+                    } else {
+                        LOGGER.error("Unable to create custom user, systemKeycloak response - " + response.getStatusInfo());
+
+                        customUserResponseDTO.setStatus("Faild to create user - Unable to create user in keycloak: " + response.getStatus());
+                        failedUserList.add(customUserResponseDTO);
+//                    throw new KeycloakUserException("Unable to create custom user in keycloak directory: " + response.getStatusInfo());
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Unable to create custom user in systemKeycloak", e.getMessage());
+                    customUserResponseDTO.setStatus("Faild to create user");
+                    failedUserList.add(customUserResponseDTO);
+//                throw new KeycloakUserException("Unable to create custom user - error message: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                LOGGER.error("Unable to create custom user in systemKeycloak", e.getMessage());
-                throw new KeycloakUserException("Unable to create custom user - error message: " + e.getMessage());
+            }
+        }
+
+        bulkCustomUserResponseDTO.setSucceedUser(succeedUserList);
+        bulkCustomUserResponseDTO.setFailedUser(failedUserList);
+
+        processUserCreationMailNotification(bulkCustomUserResponseDTO);
+
+        return bulkCustomUserResponseDTO;
+    }
+
+    @Async
+    private void processUserCreationMailNotification(@NonNull BulkCustomUserResponseDTO bulkCustomUserResponseDTO) {
+        if (bulkCustomUserResponseDTO.getSucceedUser() != null && !bulkCustomUserResponseDTO.getSucceedUser().isEmpty()) {
+            for (CustomUserResponseDTO customUserResponseDTO : bulkCustomUserResponseDTO.getSucceedUser()) {
+
+                CustomUserDTO customUserDTO = CustomUserDTO.builder()
+                        .email(customUserResponseDTO.getEmail())
+                        .firstName(customUserResponseDTO.getFirstName())
+                        .lastName(customUserResponseDTO.getLastName())
+                        .roleName(customUserResponseDTO.getRoleName())
+                        .build();
+
+
+                mailService.sendUserCreationNotification(customUserDTO);
             }
         }
     }
@@ -378,7 +429,7 @@ public class UserService {
     /**
      * @param customUserDTO
      */
-    private void assignCustomUserRole(CustomUserDTO customUserDTO) {
+    private String assignCustomUserRole(CustomUserDTO customUserDTO) {
         List<UserRepresentation> userRepresentationList = getUserDetails(customUserDTO.getUsername());
 
         if (userRepresentationList != null && !userRepresentationList.isEmpty()) {
@@ -399,7 +450,13 @@ public class UserService {
                         .toRepresentation()
                 );
                 user.roles().realmLevel().add(roleToAdd);
+
+                return userRepresentationOptional.get().getId();
+            } else {
+                throw new RoleNotFoundException("Unable to find role");
             }
+        } else {
+            throw new RoleNotFoundException("Unable to find role");
         }
     }
 
@@ -413,11 +470,11 @@ public class UserService {
     public void persistUserDetailsWithCredentials(@NonNull CustomUserDTO customUserDTO) throws Exception {
         UserCredential userCredential = UserCredential.builder()
                 .userName(customUserDTO.getUsername())
-                .password(customUserDTO.getPassword())
+                .password(cipherEncoder.encodeText(customUserDTO.getPassword()))
                 .build();
 
         userCredentialRepository.save(userCredential);
-        mailService.sendUserCreationNotification(customUserDTO);
+//        mailService.sendUserCreationNotification(customUserDTO);
     }
 
     /**
@@ -522,7 +579,7 @@ public class UserService {
         Optional<UserCredential> userCredentialOptional = userCredentialRepository.findByUserName(username);
 
         if (userCredentialOptional.isPresent()) {
-            return userCredentialOptional.get().getPassword();
+            return cipherEncoder.decodeText(userCredentialOptional.get().getPassword());
         } else {
             throw new UserNotFoundException("User is not configured properly in User management system");
         }
@@ -619,4 +676,59 @@ public class UserService {
         }
     }
 
+    public CustomUserResponseDTO createCustomUser(CustomUserDTO customUserDTO) {
+        if (customUserDTO != null && !StringUtils.isEmpty(customUserDTO.getUsername())) {
+            if (isUserExist(customUserDTO.getUsername())) {
+                throw new UserConflictException("User is already exist in user management in DB");
+            }
+
+            CustomUserResponseDTO customUserResponseDTO = CustomUserResponseDTO.builder()
+                    .email(customUserDTO.getEmail())
+                    .firstName(customUserDTO.getFirstName())
+                    .lastName(customUserDTO.getLastName())
+                    .roleName(customUserDTO.getRoleName())
+                    .build();
+
+            UserRepresentation userRepresentation = new UserRepresentation();
+            userRepresentation.setUsername(customUserDTO.getUsername());
+            userRepresentation.setFirstName(customUserDTO.getFirstName());
+            userRepresentation.setLastName(customUserDTO.getLastName());
+            userRepresentation.setEmail(customUserDTO.getEmail());
+            userRepresentation.setCredentials(Collections.singletonList(createPasswordCredentials(customUserDTO.getPassword())));
+            userRepresentation.setEnabled(true);
+
+            try {
+                Response response = getSystemUsersResource().create(userRepresentation);
+
+                if (response.getStatus() == HttpStatus.CREATED.value()) {
+                    String userId = assignCustomUserRole(customUserDTO);
+                    persistUserDetailsWithCredentials(customUserDTO);
+
+                    customUserResponseDTO.setUserId(userId);
+                    customUserResponseDTO.setStatus("User has been created successfully - mail in progress");
+                    mailService.sendUserCreationNotification(customUserDTO);
+
+                    return customUserResponseDTO;
+                } else {
+                    LOGGER.error("Unable to create user, systemKeycloak response - " + response.getStatusInfo());
+                    throw new KeycloakUserException("Unable to create user in keycloak directory: " + response.getStatusInfo());
+                }
+            } catch (Exception e) {
+                LOGGER.error("Unable to create user in systemKeycloak", e.getMessage());
+                throw new KeycloakUserException("Unable to create user - error message: " + e.getMessage());
+            }
+        } else {
+            throw new InvalidInputDataException("Invalid input for user creation");
+        }
+    }
+
+
+    public boolean isUserExist(@NonNull String username) {
+        Optional<UserCredential> userCredentialOptional = userCredentialRepository.findByUserName(username);
+        if (userCredentialOptional.isPresent()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
