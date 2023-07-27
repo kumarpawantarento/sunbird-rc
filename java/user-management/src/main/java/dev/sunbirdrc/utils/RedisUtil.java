@@ -31,8 +31,6 @@ public class RedisUtil {
     }
 
     public String getValue(String key) {
-        //return customRedis.opsForValue().get(key);
-        String str= String.valueOf(customRedis.opsForValue().get(key));
-    return str;
+        return customRedis.opsForValue().get(key);
     }
 }
