@@ -3,6 +3,7 @@ package dev.sunbirdrc.service;
 import dev.sunbirdrc.config.PropertiesValueMapper;
 import dev.sunbirdrc.dto.CustomUserDTO;
 import dev.sunbirdrc.entity.UserDetails;
+import dev.sunbirdrc.exception.OtpException;
 import dev.sunbirdrc.utils.OtpUtil;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -42,7 +43,7 @@ public class MailService {
      * @param userDetails
      */
     @Async
-    public void sendOtpMail(UserDetails userDetails) throws Exception {
+    public void sendOtpMail(UserDetails userDetails) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
 
@@ -57,7 +58,7 @@ public class MailService {
             mailSender.send(mimeMessageHelper.getMimeMessage());
         } catch (Exception e) {
             logger.error("Exception while sending mail: ", e);
-            throw new Exception("Exception while composing and sending mail with OTP");
+            throw new OtpException("Exception while composing and sending mail with OTP");
         }
     }
 

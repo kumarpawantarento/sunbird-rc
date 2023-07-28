@@ -104,11 +104,7 @@ public class UserController {
 
     @PostMapping("/user/generateOtp")
     public ResponseEntity<String> generateUserOtp(@Valid @RequestBody CustomUsernameDTO customUsernameDTO) {
-        try {
-            userService.generateCustomUserOtp(customUsernameDTO);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        userService.generateCustomUserOtp(customUsernameDTO);
 
         return new ResponseEntity<>("Sending OTP to user mail", HttpStatus.OK);
     }

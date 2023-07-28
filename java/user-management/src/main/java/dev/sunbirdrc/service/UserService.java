@@ -481,9 +481,13 @@ public class UserService {
      * @param adminDTO
      * @throws Exception
      */
-    public void generateCustomUserOtp(CustomUsernameDTO customUsernameDTO) throws Exception {
+    public void generateCustomUserOtp(CustomUsernameDTO customUsernameDTO) {
         if (customUsernameDTO != null && !StringUtils.isEmpty(customUsernameDTO.getUsername())) {
             String username = customUsernameDTO.getUsername();
+
+            if (!isUserExist(username)) {
+                throw new UserNotFoundException("User is not available in User Management System");
+            }
 
             List<UserRepresentation> userRepresentationList = getUserDetails(username);
 
@@ -506,7 +510,11 @@ public class UserService {
 
                     mailService.sendOtpMail(userDetails);
                 }
+            } else {
+                throw new UserNotFoundException("User is not available in Keycloak System");
             }
+        } else {
+            throw new InvalidInputDataException("Invalid input data");
         }
     }
 
