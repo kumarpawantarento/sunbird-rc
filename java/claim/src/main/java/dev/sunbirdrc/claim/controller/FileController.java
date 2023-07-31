@@ -39,7 +39,7 @@ public class FileController {
     @RequestMapping("download")
     @PostMapping(produces = {MediaType.APPLICATION_PDF_VALUE})
     public ResponseEntity<Resource> downloadFile(
-            @RequestParam String fileName) {
+            @RequestParam(value = "fileName", required = false) String fileName) {
         ByteArrayResource resource = fileService.downloadFile(fileName);
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + fileName + "\"");

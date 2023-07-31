@@ -106,6 +106,20 @@ public class CertificateServiceImpl implements ICertificateService {
 
     }
 
+    public byte[]  getCred(String fileName) {
+        byte[] bytes = null;
+        try {
+            logger.info("Track Certificate start");
+            bytes = claimRequestClient.getCredentials(fileName);
+            logger.info("Track Certificate end");
+        } catch (Exception e) {
+            logger.error("Track certificate failed", e);
+        }
+
+        return bytes;
+
+    }
+
     public String saveToGCS(Object certificate, String entityId) {
         String url = null;
         logger.info("Uploading File GCP.");

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 
 import java.io.ByteArrayOutputStream;
@@ -38,6 +39,7 @@ public class ClaimRequestClient {
     private static final String MAIL_SEND_URL = "/api/v1/sendMail";
     private static final String BAR_CODE_API = "/api/v1/barcode";
     private static final String SAVE_CRED_API = "/api/v1/credentials/save";
+    private static final String GET_CRED_URL = "/api/v1/files/download?";
     private static final String PDF = ".PDF";
     private static final String GCS_CODE_API = "/api/v1/files/upload";
 
@@ -131,9 +133,23 @@ public class ClaimRequestClient {
         logger.info("in Client::"+"Track certificate");
         String node = restTemplate.postForObject(claimRequestUrl + SAVE_CRED_API, learner, String.class);
         logger.info("in Client certificate saved ...");
-
     }
 
+    public byte[] getCredentials(String fileName) {
+        String requestUrl = claimRequestUrl + GET_CRED_URL;
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add("fileName", fileName);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(requestUrl)
+                .queryParam("fileName", fileName);
+        // Set request headers if needed
+        HttpHeaders headers = new HttpHeaders();
+        // Add any required headers here
+        headers.set("accept", "*/*");
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                builder.toUriString(), HttpMethod.GET, null, byte[].class, queryParams, headers
+        );        logger.info("end getCredentials ...");
+        return response.getBody();
+    }
     public JsonNode getClaims(JsonNode jsonNode, Pageable pageable, String entityName) {
         final String QUERY_PARAMS = "?size=" + pageable.getPageSize() + "&page="+pageable.getPageNumber();
         ObjectNode requestBody = JsonNodeFactory.instance.objectNode();
